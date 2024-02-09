@@ -1,6 +1,6 @@
 # CE integrated roads
 
-Quckly merge various BC road data sources into a single layer.
+Quckly merge various BC road data sources into a single layer for Cumulative Effects (CE) analysis.
 
 ## Sources
 
