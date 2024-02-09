@@ -1,4 +1,4 @@
-# roadintegrator
+# CE integrated roads
 
 Quckly merge various BC road data sources into a single layer.
 
@@ -57,8 +57,8 @@ Tested with versions as noted in `Dockerfile`
 
 Clone the repository, navigate to the project folder:
 
-        git clone https://github.com/smnorris/roadintegrator.git
-        cd roadintegrator
+        git clone https://github.com/bcgov/CE_integratedroads.git
+        cd CE_integratedroads
 
 If you do not have above noted requirements installed on your system, installation via `conda` or Docker is recommended. An `environment.yml` is provided for users familiar with `conda`, instructions for Docker usage are below.
 
