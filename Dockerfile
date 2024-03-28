@@ -2,7 +2,7 @@ FROM ghcr.io/osgeo/gdal:ubuntu-small-latest
 
 RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends postgresql-common \
-	&& apt-get -qq install -y --no-install-recommends yes \
+    && apt-get -qq install -y --no-install-recommends yes \
     && apt-get -qq install -y --no-install-recommends gnupg \
     && yes '' | sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
     && apt-get -qq install -y --no-install-recommends postgresql-client-16 \
@@ -17,9 +17,6 @@ RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends python3-pip \
     && apt-get -qq install -y --no-install-recommends python3-psycopg2 \
     && pip3 install --upgrade numpy \
-    && pip3 install --no-binary fiona fiona \
-    && pip3 install fio-planet \
-    && pip3 install pyarrow \
     && pip3 install bcdata \
     && rm -rf /var/lib/apt/lists/*
 
