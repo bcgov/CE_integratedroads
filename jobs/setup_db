@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# ----
+# setup database
+# ----
+
+PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
+
+$PSQL -c "CREATE EXTENSION postgis"
+$PSQL -c "CREATE EXTENSION postgis_sfcgal"
+
+$PSQL -c "CREATE SCHEMA whse_basemapping"
+$PSQL -c "CREATE SCHEMA whse_forest_tenure"
+$PSQL -c "CREATE SCHEMA whse_forest_vegetation"
+$PSQL -c "CREATE SCHEMA whse_mineral_tenure"
+
+$PSQL -f sql/ST_ApproximateMedialAxisIgnoreErrors.sql
+
+# load tiles
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -lco GEOMETRY_NAME=geom \
+  whse_basemapping.bcgs_20k_grid.parquet \
+  whse_basemapping.bcgs_20k_grid
+
