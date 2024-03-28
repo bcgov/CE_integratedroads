@@ -20,15 +20,15 @@ ogr2ogr \
 $PSQL -c "DROP TABLE IF EXISTS results"
 
 $PSQL -c "CREATE TABLE results (
-  results_id serial primary key, \
-  map_tile character varying, \
+  results_id serial primary key,
+  map_tile character varying,
   geom geometry(Linestring, 3005)
 )"
 
 $PSQL -tXA \
--c "SELECT DISTINCT map_tile \
-    FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r \
-    WHERE ST_ISValid(geom) \
+-c "SELECT DISTINCT map_tile
+    FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r
+    WHERE ST_ISValid(geom)
     ORDER BY map_tile" \
     | parallel --progress \
       $PSQL -f sql/roadpoly2line.sql \

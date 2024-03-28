@@ -5,26 +5,34 @@ set -euxo pipefail
 # Download BC WFS datasets to local drive
 # ----
 
-mkdir -p sources
-
 # 20k tiles, downloaded to current working folder
 bcdata cat whse_basemapping.bcgs_20k_grid \
-  --dst-crs EPSG:3005 \
-  | fio load -f Parquet --dst-crs EPSG:3005 whse_basemapping.bcgs_20k_grid.parquet
+  -vl --dst-crs EPSG:3005 \
+  | fio map 'dump g' \
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_basemapping.bcgs_20k_grid.parquet
 
 # ften roads, active
 bcdata cat whse_forest_tenure.ften_road_section_lines_svw \
   --query "LIFE_CYCLE_STATUS_CODE = 'ACTIVE'" \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_forest_tenure.ften_road_section_lines_svw_active.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_forest_tenure.ften_road_section_lines_svw_active.parquet
 
 # ften roads, retired
 bcdata cat whse_forest_tenure.ften_road_section_lines_svw \
   --query "LIFE_CYCLE_STATUS_CODE = 'RETIRED'" \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_forest_tenure.ften_road_section_lines_svw_retired.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_forest_tenure.ften_road_section_lines_svw_retired.parquet
 
 # Results road polygons
 bcdata cat whse_forest_vegetation.rslt_forest_cover_inv_svw \
@@ -34,22 +42,34 @@ bcdata cat whse_forest_vegetation.rslt_forest_cover_inv_svw \
            AND GEOMETRY_EXIST_IND = 'Y'" \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet
 
 # oil and gas dev, pre06
 bcdata cat whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet
 
 # oil and gas permits, road segments
 bcdata cat whse_mineral_tenure.og_road_segment_permit_sp \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_mineral_tenure.og_road_segment_permit_sp.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_mineral_tenure.og_road_segment_permit_sp.parquet
 
 # Oil and Gas permits, road right of way (polygons)
 bcdata cat whse_mineral_tenure.og_road_area_permit_sp \
   -vl --dst-crs EPSG:3005 \
   | fio map 'dump g' \
-  | fio load -f Parquet --dst-crs EPSG:3005 sources/whse_mineral_tenure.og_road_area_permit_sp.parquet
+  | fio load \
+      -f Parquet \
+      --dst-crs EPSG:3005 \
+      s3://ce-integratedroads/whse_mineral_tenure.og_road_area_permit_sp.parquet
