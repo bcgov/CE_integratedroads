@@ -18,7 +18,7 @@ RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends python3-psycopg2 \
     && pip3 install --upgrade numpy \
     && pip3 install bcdata \
-    && pip3 install fio-plant \
+    && pip3 install fio-planet \
     && pip3 install pyarrow \
     && rm -rf /var/lib/apt/lists/*
 

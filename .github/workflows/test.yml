@@ -29,7 +29,7 @@ jobs:
                 whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet
       - name: test overlay
         run:  |
-        python intersect.py -v \
-          whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
-          whse_basemapping.bcgs_20k_grid.parquet \
-          -o test_overlay.parquet
+          python intersect.py -v \
+            whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
+            whse_basemapping.bcgs_20k_grid.parquet \
+            -o test_overlay.parquet
