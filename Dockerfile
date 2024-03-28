@@ -17,7 +17,7 @@ RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends python3-pip \
     && apt-get -qq install -y --no-install-recommends python3-psycopg2 \
     && pip3 install --upgrade numpy \
-    && pip3 install --no-binary fiona fiona
+    && pip3 install --no-binary fiona fiona \
     && pip3 install fio-planet \
     && pip3 install pyarrow \
     && pip3 install bcdata \
