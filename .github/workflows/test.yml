@@ -1,0 +1,35 @@
+name: test
+run-name: ${{ github.actor }} test a workflow
+on:
+  workflow_dispatch:  
+jobs:
+  download-overlay:
+    runs-on: ubuntu-latest
+    container: ghcr.io/smnorris/ce_integratedroads:main
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: download 20k grid
+        run:  |
+          bcdata cat whse_basemapping.bcgs_20k_grid \
+            -vl --dst-crs EPSG:3005 \
+            | fio map 'dump g' \
+            | fio load \
+                -f Parquet \
+                --dst-crs EPSG:3005 \
+                whse_basemapping.bcgs_20k_grid.parquet
+      - name: download test data
+        run:  |
+          bcdata cat whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp \
+            -vl --dst-crs EPSG:3005 \
+            | fio map 'dump g' \
+            | fio load \
+                -f Parquet \
+                --dst-crs EPSG:3005 \
+                whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet
+      - name: test overlay
+        run:  |
+        python intersect.py -v \
+          whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
+          whse_basemapping.bcgs_20k_grid.parquet \
+          -o test_overlay.parquet
