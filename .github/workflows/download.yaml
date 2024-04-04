@@ -1,0 +1,25 @@
+name: download
+run-name: ${{ github.actor }} Download required data
+on:
+  workflow_dispatch:
+env:
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+  AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
+  AWS_S3_ENDPOINT: nrs.objectstore.gov.bc.ca
+  AWS_VIRTUAL_HOSTING: FALSE
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OBJECTSTORE_BUCKET: ${{ secrets.OBJECTSTORE_BUCKET }}
+  AWS_EC2_METADATA_DISABLED: true
+  CPL_VSISTDIN_BUFFER_LIMIT: -1
+jobs:
+  download-wfs:
+    runs-on: ubuntu-latest
+    container: ghcr.io/smnorris/ce_integratedroads:main
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: WFS data - download/tile/dump
+        run:  |
+          python bc2pq.py whse_basemapping.bcgs_20k_grid --columns map_tile --out_file /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
+          python bc2pq.py bcdata.json --tile_dataset /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
