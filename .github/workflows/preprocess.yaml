@@ -15,8 +15,7 @@ env:
 jobs:
   preprocess_ften_active:
     runs-on: ubuntu-latest
-    environment: production
-    container: ghcr.io/smnorris/gha_testing:main
+    container: ghcr.io/bcgov/ce_integratedroads:main
     services:
       postgres:
         image: postgis/postgis:16-3.4
