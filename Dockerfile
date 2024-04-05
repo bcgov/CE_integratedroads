@@ -19,7 +19,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/ce_integratedroads
-COPY requirements.txt ./
 
 RUN pip3 install -U pip && \
     pip3 install --no-cache-dir --upgrade numpy && \
