@@ -34,4 +34,10 @@ $PSQL -tXA \
        -v tile={1} \
        -v in_table=whse_mineral_tenure.og_road_area_permit_sp \
        -v out_table=og_permits_row
-$PSQL -c "CREATE INDEX ON og_permits_row USING GIST (geom)"
+
+# dump to file
+ogr2ogr \
+  -f Parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/og_permits_row.parquet
+  PG:$DATABASE_URL \
+  -sql "select * from og_permits_row"

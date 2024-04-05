@@ -35,4 +35,10 @@ $PSQL -tXA \
         -v tile={1} \
         -v in_table=whse_forest_vegetation.rslt_forest_cover_inv_svw \
         -v out_table=results
-$PSQL -c "CREATE INDEX ON results USING GIST (geom)"
+
+# dump to file
+ogr2ogr \
+  -f Parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/results.parquet
+  PG:$DATABASE_URL \
+  -sql "select * from results"

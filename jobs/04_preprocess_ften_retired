@@ -32,4 +32,9 @@ $PSQL -tXA \
       ORDER BY map_tile" \
   | parallel $PSQL -f sql/preprocess_ften_retired.sql -v tile={1}
 
-$PSQL -c "CREATE INDEX on ften_retired USING GIST (geom);"
+# dump to file
+ogr2ogr \
+  -f Parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/ften_retired.parquet
+  PG:$DATABASE_URL \
+  -sql "select * from ften_retired"
