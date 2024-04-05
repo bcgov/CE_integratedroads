@@ -199,7 +199,7 @@ $PSQL -tXA \
       SELECT
         transport_line_id,
         map_tile,
-        geom
+        (st_dump(geom)).geom
       FROM whse_basemapping.transport_line"
 
 # load all other sources
