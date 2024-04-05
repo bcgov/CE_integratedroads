@@ -1,28 +1,8 @@
 [
     {
         "dataset": "whse_forest_tenure.ften_road_section_lines_svw",
-        "name": "whse_forest_tenure.ften_road_section_lines_svw_active",
-        "query": "LIFE_CYCLE_STATUS_CODE = 'ACTIVE'",
-        "columns":
-            [
-                "forest_file_id",
-                "road_section_id",
-                "file_status_code",
-                "file_type_code",
-                "file_type_description",
-                "life_cycle_status_code",
-                "award_date",
-                "retirement_date",
-                "client_number",
-                "client_name",
-                "map_label"
-            ],
-        "promote_to_multi": true
-    },
-    {
-        "dataset": "whse_forest_tenure.ften_road_section_lines_svw",
-        "name": "whse_forest_tenure.ften_road_section_lines_svw_retired",
-        "query": "LIFE_CYCLE_STATUS_CODE = 'RETIRED'",
+        "name": "whse_forest_tenure.ften_road_section_lines_svw",
+        "query": "LIFE_CYCLE_STATUS_CODE in ('ACTIVE', 'RETIRED')",
         "columns":
             [
                 "forest_file_id",

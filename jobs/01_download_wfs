@@ -6,12 +6,12 @@ set -euxo pipefail
 # ----
 
 # get grid
-python bc2pq.py \
+python scripts/bc2pq.py \
   whse_basemapping.bcgs_20k_grid \
   --columns map_tile \
   --out_file s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
 
 # everything else
-python bc2pq.py \
+python scripts/bc2pq.py \
   bcdata.json \
   --tile_dataset s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet

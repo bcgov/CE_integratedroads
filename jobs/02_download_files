@@ -14,11 +14,14 @@ curl ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/DRA_Public/dgtl_road_atlas
 ogr2ogr \
   -f Parquet \
   tmp/whse_basemapping.transport_line.parquet \
+  -select transport_line_id,structured_name_1,structured_name_1_id,capture_date,total_number_of_lanes,transport_line_structure_code,transport_line_type_code,transport_line_surface_code \
+  -unsetFid \
+  -dim XY \
   -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
   /vsizip/tmp/dgtl_road_atlas.gdb.zip \
   TRANSPORT_LINE
 
-python intersect.py \
+python scripts/intersect.py \
   tmp/whse_basemapping.transport_line.parquet \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet
@@ -55,7 +58,7 @@ ogr2ogr \
   /vsizip/tmp/Cariboo_Consolidated_Roads_20240304.gdb.zip \
   Cariboo_Consolidated_Roads
 
-python intersect.py \
+python scripts/intersect.py \
   tmp/cariboo_consolidated_roads.parquet \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
   s3://$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet
