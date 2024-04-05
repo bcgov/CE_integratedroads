@@ -34,7 +34,6 @@ jobs:
         run:  |
           jobs/setup_db
           jobs/03_preprocess_ften_active
-jobs:
   preprocess_ften_retired:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
@@ -56,7 +55,6 @@ jobs:
         run:  |
           jobs/setup_db
           jobs/04_preprocess_ften_retired
-jobs:
   preprocess_results:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
@@ -78,7 +76,6 @@ jobs:
         run:  |
           jobs/setup_db
           jobs/05_preprocess_results
-jobs:
   preprocess_og_permits_row:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
