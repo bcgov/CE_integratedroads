@@ -2,9 +2,6 @@ name: download
 run-name: ${{ github.actor }} Download required data
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - 'main'
 env:
   DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
   AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
