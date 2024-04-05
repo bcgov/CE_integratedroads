@@ -12,6 +12,8 @@ all: $(TARGETS)
 build:
 	docker-compose build
 	docker-compose up -d
+	#docker-compose run app psql -c "CREATE DATABASE $(PGDATABASE)" postgres
+	#docker-compose run app psql -c "CREATE EXTENSION POSTGIS" ce_integratedroads
 
 # Remove all generated targets, stop and delete the db container
 clean:

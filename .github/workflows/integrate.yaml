@@ -1,0 +1,24 @@
+name: integrate
+run-name: ${{ github.actor }} Run integratedroads job
+on:
+  workflow_dispatch:
+env:
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+  AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
+  AWS_S3_ENDPOINT: nrs.objectstore.gov.bc.ca
+  AWS_VIRTUAL_HOSTING: FALSE
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OBJECTSTORE_BUCKET: ${{ secrets.OBJECTSTORE_BUCKET }}
+  AWS_EC2_METADATA_DISABLED: true
+  CPL_VSISTDIN_BUFFER_LIMIT: -1
+jobs:
+  integratedroads:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: WFS data - download/tile/dump
+        run:  |
+          jobs/06_integratedroads
