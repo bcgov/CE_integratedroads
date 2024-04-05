@@ -23,7 +23,9 @@ COPY requirements.txt ./
 
 RUN pip3 install -U pip && \
     pip3 install --no-cache-dir --upgrade numpy && \
-    pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install --no-cache-dir pyarrow && \
+    pip3 install --no-cache-dir --no-binary fiona fiona && \
+    pip3 install --no-cache-dir bcdata && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install

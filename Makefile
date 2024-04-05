@@ -1,6 +1,6 @@
 .PHONY: all build clean
 
-PSQL=psql $(DATABASE_URL) -v ON_ERROR_STOP=1          # point psql to db and stop on errors
+PSQL=psql $(DATABASE_URL) -v ON_ERROR_STOP=1
 
 JOBS=$(wildcard jobs/*)
 TARGETS=$(patsubst jobs/%,.make/%,$(JOBS))
@@ -8,16 +8,14 @@ TARGETS=$(patsubst jobs/%,.make/%,$(JOBS))
 # Make all targets
 all: $(TARGETS)
 
-
 # get/build required docker images
 build:
 	docker-compose build
 	docker-compose up -d
 
-
 # Remove all generated targets, stop and delete the db container
 clean:
-	rm -Rf $(GENERATED_FILES)
+	rm -Rf .make
 	docker-compose down
 
 # run all scripts
