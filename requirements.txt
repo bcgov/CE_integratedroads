@@ -1,3 +1,2 @@
 bcdata
-fio-planet
 pyarrow
