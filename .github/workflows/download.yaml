@@ -15,7 +15,7 @@ env:
 jobs:
   download-wfs:
     runs-on: ubuntu-latest
-    container: ghcr.io/smnorris/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads:main
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
