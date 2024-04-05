@@ -115,7 +115,7 @@ def process(
     # if specified, intersect with tile_dataset
     if tile_dataset:
         log.info(f"Intersecting {dataset} with {tile_dataset}")
-        tiles = geopandas.read_file(tile_dataset)
+        tiles = geopandas.read_parquet(tile_dataset)
         out_df = df.overlay(tiles, how="intersection")
     else:
         out_df = df

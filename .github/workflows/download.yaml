@@ -21,5 +21,5 @@ jobs:
         uses: actions/checkout@v4
       - name: WFS data - download/tile/dump
         run:  |
-          python bc2pq.py whse_basemapping.bcgs_20k_grid --columns map_tile --out_file /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
-          python bc2pq.py bcdata.json --tile_dataset /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
+          python bc2pq.py whse_basemapping.bcgs_20k_grid --columns map_tile --out_file s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
+          python bc2pq.py bcdata.json --tile_dataset s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
