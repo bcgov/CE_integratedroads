@@ -10,10 +10,9 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 | 1 |[Digital Road Atlas (DRA)](https://catalogue.data.gov.bc.ca/dataset/digital-road-atlas-dra-master-partially-attributed-roads) | WHSE_BASEMAPPING.TRANSPORT_LINE (*from DRA ftp*) |
 | 2 | [Forest Tenure Road Section Lines](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW |
 | 3 | [RESULTS - Forest Cover Inventory - roads](https://catalogue.data.gov.bc.ca/dataset/results-forest-cover-inventory) | WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW |
-| 4 | As Built Roads (ABR) | WHSE_FOREST_TENURE.ABR_ROAD_SECTION_LINE |
-| 5 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP |
-| 6 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP |
-| 7 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP |
+| 4 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP |
+| 5 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP |
+| 6 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP |
 
 ## Method
 
@@ -44,14 +43,12 @@ Additional notes:
 
 ## Requirements
 
-- bash/make/wget/zip/unzip/parallel
+- bash/make/zip/unzip/parallel (see Dockerfile)
 - PostgreSQL >= 14
 - PostGIS >= 3.3
-- GDAL >= 3.6
+- GDAL >= 3.8
 - Python >= 3.9
-- [bcdata](https://github.com/smnorris/bcdata) >= 0.9.1
-
-Tested with versions as noted in `Dockerfile`
+- [bcdata](https://github.com/smnorris/bcdata) >= 0.10.2
 
 ## Setup
 
@@ -60,7 +57,7 @@ Clone the repository, navigate to the project folder:
         git clone https://github.com/bcgov/CE_integratedroads.git
         cd CE_integratedroads
 
-If you do not have above noted requirements installed on your system, installation via `conda` or Docker is recommended. An `environment.yml` is provided for users familiar with `conda`, instructions for Docker usage are below.
+If you do not have above noted requirements installed on your system, using Docker is recommended. Instructions for Docker usage are below.
 
 
 ### Docker
@@ -82,7 +79,7 @@ If you have shut down Docker or the container, start it up again with this comma
 
 ## Usage
 
-Scripts are run via make. To run the full job:
+Scripts are called via make. To run the full job:
 
         make
 
