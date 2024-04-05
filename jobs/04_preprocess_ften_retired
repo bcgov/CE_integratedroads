@@ -35,6 +35,6 @@ $PSQL -tXA \
 # dump to file
 ogr2ogr \
   -f Parquet \
-  /vsis3/$OBJECTSTORE_BUCKET/ften_retired.parquet
+  /vsis3/$OBJECTSTORE_BUCKET/ften_retired.parquet \
   PG:$DATABASE_URL \
   -sql "select * from ften_retired"
