@@ -1,5 +1,5 @@
 import logging
-import os
+
 import sys
 
 import click
@@ -15,8 +15,8 @@ def configure_logging(verbosity):
 
 
 @click.command()
-@click.argument("source_dataset", type=click.Path(exists=True))
-@click.argument("tile_dataset", type=click.Path(exists=True))
+@click.argument("source_dataset")
+@click.argument("tile_dataset")
 @click.option("--out_file", "-o", help="Output file")
 @verbose_opt
 @quiet_opt
@@ -27,22 +27,18 @@ def intersect(source_dataset, tile_dataset, out_file, verbose, quiet):
     verbosity = verbose - quiet
     configure_logging(verbosity)
 
-    if out_file and os.path.exists(out_file):
-        click.echo(f"Output file {out_file} exists")
+    # load, overlay, dump
+    click.echo(f"Intersecting {source_dataset} with {tile_dataset}")
+    source = geopandas.read_parquet(source_dataset)
+    tiles = geopandas.read_parquet(tile_dataset)
+    tiled_data = source.overlay(tiles, how="intersection")
+
+    if out_file:
+        click.echo(f"Writing overlay to {out_file}")
+        tiled_data.to_file(out_file, driver="Parquet")
 
     else:
-        # load, overlay, dump
-        click.echo(f"Intersecting {source_dataset} with {tile_dataset}")
-        source = geopandas.read_parquet(source_dataset)
-        tiles = geopandas.read_parquet(tile_dataset)
-        tiled_data = source.overlay(tiles, how="intersection")
-
-        if out_file:
-            click.echo(f"Writing overlay to {out_file}")
-            tiled_data.to_file(out_file, driver="Parquet")
-
-        else:
-            click.echo(tiled_data.to_json())
+        click.echo(tiled_data.to_json())
 
 
 if __name__ == "__main__":

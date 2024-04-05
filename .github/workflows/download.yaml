@@ -22,3 +22,12 @@ jobs:
       - name: WFS data - download/tile/dump
         run:  |
           jobs/01_download_wfs
+  download-files:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: File data - download/tile/dump
+        run:  |
+          jobs/02_download_files
