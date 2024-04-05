@@ -29,7 +29,7 @@ CREATE TABLE integratedroads_sources
   forest_cover_id integer,
   results_area numeric,
   road_section_line_id integer,
-  abr_length numeric,
+  --abr_length numeric,
   og_petrlm_dev_rd_pre06_pub_id integer,
   og_dev_pre06_length numeric,
   og_road_segment_permit_id integer,
@@ -64,7 +64,9 @@ SELECT DISTINCT ON (i.integratedroads_id)
 FROM integratedroads i
 LEFT OUTER JOIN integratedroads_sources src
   ON i.integratedroads_id = src.integratedroads_id
-ORDER BY i.integratedroads_id, ften_length desc, results_area desc, abr_length desc, og_dev_pre06_length desc, og_permits_length desc, og_permits_row_area desc
+ORDER BY i.integratedroads_id, ften_length desc, results_area desc,
+-- abr_length desc,
+og_dev_pre06_length desc, og_permits_length desc, og_permits_row_area desc
 ),
 
 bcgw AS
@@ -73,7 +75,7 @@ bcgw AS
   CASE
     WHEN i.transport_line_id IS NOT NULL THEN 'WHSE_BASEMAPPING.TRANSPORT_LINE'
     WHEN i.map_label IS NOT NULL THEN 'WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW'
-    WHEN i.road_section_line_id IS NOT NULL THEN 'WHSE_FOREST_TENURE.ABR_ROAD_SECTION_LINE'
+    --WHEN i.road_section_line_id IS NOT NULL THEN 'WHSE_FOREST_TENURE.ABR_ROAD_SECTION_LINE'
     WHEN i.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 'WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP'
     WHEN i.og_road_segment_permit_id IS NOT NULL THEN 'WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP'
     WHEN i.results_id IS NOT NULL THEN 'WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW'
@@ -85,7 +87,7 @@ bcgw AS
 SELECT
   i.integratedroads_id AS INTEGRATEDROADS_ID,
   bcgw.bcgw_source AS BCGW_SOURCE,
-  m.latest_download AS BCGW_EXTRACTION_DATE,
+  --m.latest_download AS BCGW_EXTRACTION_DATE,
   map_tile AS MAP_TILE,
   i.transport_line_id AS TRANSPORT_LINE_ID,
   dra_struct.description                    AS DRA_STRUCTURE,
@@ -114,11 +116,11 @@ SELECT
   results.reference_year                    AS RESULTS_REFERENCE_YEAR,
   results.forest_cover_when_created         AS RESULTS_WHEN_CREATED,
   results.forest_cover_when_updated         AS RESULTS_WHEN_UPDATED,
-  i.road_section_line_id                    AS ABR_ROAD_SECTION_LINE_ID,
-  abr.forest_file_id                        AS ABR_FOREST_FILE_ID,
-  abr.road_section_id                       AS ABR_ROAD_SECTION_ID,
-  abr.submission_id                         AS ABR_SUBMISSION_ID,
-  abr.update_timestamp                      AS ABR_UPDATE_TIMESTAMP,
+  --i.road_section_line_id                    AS ABR_ROAD_SECTION_LINE_ID,
+  --abr.forest_file_id                        AS ABR_FOREST_FILE_ID,
+  --abr.road_section_id                       AS ABR_ROAD_SECTION_ID,
+  --abr.submission_id                         AS ABR_SUBMISSION_ID,
+  --abr.update_timestamp                      AS ABR_UPDATE_TIMESTAMP,
   i.og_petrlm_dev_rd_pre06_pub_id           AS OG_PETRLM_DEV_RD_PRE06_PUB_ID,
   og_dev_pre06.petrlm_development_road_type AS PETRLM_DEVELOPMENT_ROAD_TYPE,
   og_dev_pre06.application_received_date    AS APPLICATION_RECEIVED_DATE,
@@ -143,8 +145,8 @@ SELECT
 FROM sourced i
 INNER JOIN bcgw
   ON i.integratedroads_id = bcgw.integratedroads_id
-INNER JOIN bcdata.log m
-  ON bcgw.bcgw_source = UPPER(m.table_name)
+--INNER JOIN bcdata.log m
+--  ON bcgw.bcgw_source = UPPER(m.table_name)
 LEFT OUTER JOIN whse_basemapping.transport_line dra
   ON i.transport_line_id = dra.transport_line_id
 LEFT OUTER JOIN whse_basemapping.transport_line_structure_code dra_struct
@@ -157,8 +159,8 @@ LEFT OUTER JOIN whse_forest_tenure.ften_road_section_lines_svw ften
   ON i.map_label = ften.map_label
 LEFT OUTER JOIN whse_forest_vegetation.rslt_forest_cover_inv_svw results
   ON i.forest_cover_id = results.forest_cover_id
-LEFT OUTER JOIN whse_forest_tenure.abr_road_section_line abr
-  ON i.road_section_line_id = abr.road_section_line_id
+--LEFT OUTER JOIN whse_forest_tenure.abr_road_section_line abr
+--  ON i.road_section_line_id = abr.road_section_line_id
 LEFT OUTER JOIN whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp og_dev_pre06
   ON i.og_petrlm_dev_rd_pre06_pub_id = og_dev_pre06.og_petrlm_dev_rd_pre06_pub_id
 LEFT OUTER JOIN whse_mineral_tenure.og_road_segment_permit_sp og_permits
@@ -178,7 +180,7 @@ WITH source_priority AS (
   (1,'whse_basemapping.transport_line'),
   (2,'whse_forest_tenure.ften_road_section_lines_svw'),
   (3,'whse_forest_vegetation.rslt_forest_cover_inv_svw'),
-  (4,'whse_forest_tenure.abr_road_section_line'),
+  --(4,'whse_forest_tenure.abr_road_section_line'),
   (5,'whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp'),
   (6,'whse_mineral_tenure.og_road_segment_permit_sp'),
   (7,'whse_mineral_tenure.og_road_area_permit_sp')

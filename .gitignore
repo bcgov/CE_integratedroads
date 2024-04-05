@@ -3,5 +3,7 @@
 *.gdb
 *.zip
 *.log
+*.parquet
+*.csv
 .make*
 !.gitignore

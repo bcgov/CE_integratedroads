@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euxo pipefail
+
+# ----
+# Overlay source datasets with 20k tiles
+# ----
+
+mkdir -p tiled
+
+for source in sources/*parquet
+do
+	python intersect.py -v $source \
+	  whse_basemapping.bcgs_20k_grid.parquet \
+	  -o tiled/"${source##*/}"
+done

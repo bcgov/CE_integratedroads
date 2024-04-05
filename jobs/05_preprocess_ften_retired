@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euxo pipefail
+
+# ----
+# clean retired ften roads
+# ----
+
+PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_forest_tenure.ften_road_section_lines_svw_retired \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  -select map_label,map_tile \
+  tiled/whse_forest_tenure.ften_road_section_lines_svw_retired.parquet \
+  whse_forest_tenure.ften_road_section_lines_svw_retired
+
+$PSQL -c "DROP TABLE IF EXISTS ften_retired"
+
+$PSQL -c "CREATE TABLE ften_retired (
+  ften_retired_id serial primary key,
+  map_label character varying,
+  map_tile character varying,
+  geom geometry(Linestring,3005)
+);"
+
+$PSQL -tXA \
+  -c "SELECT DISTINCT map_tile
+      FROM whse_forest_tenure.ften_road_section_lines_svw_retired
+      ORDER BY map_tile" \
+  | parallel --progress \
+  $PSQL -f sql/preprocess_ften_retired.sql -v tile={1}
+
+$PSQL -c "CREATE INDEX on ften_retired USING GIST (geom);"

@@ -9,23 +9,11 @@ WITH src AS (
       map_label,
       map_tile,
       (ST_Dump(geom)).geom as geom
-    FROM (
-      SELECT
-       r.map_label,
-       t.map_tile,
-        CASE
-          WHEN ST_CoveredBy(r.geom, t.geom) THEN ST_Force2D(r.geom)
-          ELSE ST_Force2D(ST_Intersection(t.geom, r.geom))
-        END AS geom
-      FROM whse_forest_tenure.ften_road_section_lines_svw r
-      INNER JOIN whse_basemapping.bcgs_20k_grid t
-      ON ST_Intersects(r.geom, t.geom)
-      WHERE t.map_tile = :'tile'
-      AND r.life_cycle_status_code = 'RETIRED'
+    FROM whse_forest_tenure.ften_road_section_lines_svw_retired r
+    WHERE map_tile = :'tile'
     ) as f
-    WHERE ST_Dimension(geom) = 1
-  ) as b
 ),
+
 
 start_snapped AS
 (

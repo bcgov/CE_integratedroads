@@ -23,21 +23,11 @@
 -- ---------------
 
 -- extract features from tile
-WITH tile AS
-(SELECT
-  (ST_Dump(geom)).geom as geom
-FROM (
+WITH tile AS (
   SELECT
-    CASE
-      WHEN ST_CoveredBy(ST_MakeValid(r.geom), ST_Buffer(t.geom, 10)) THEN r.geom
-      ELSE ST_Intersection(ST_Buffer(t.geom, 10), ST_MakeValid(r.geom))
-    END AS geom
-  FROM :in_table r
-  INNER JOIN whse_basemapping.bcgs_20k_grid t
-  ON ST_Intersects(r.geom, t.geom)
-  WHERE t.map_tile = :'tile'
-) as f
-WHERE ST_Dimension(geom) = 2
+    (ST_Dump(geom)).geom as geom
+  FROM :in_table
+  WHERE map_tile = :'tile'
 ),
 
 -- clean the geometries
