@@ -22,7 +22,7 @@
     {
         "dataset": "whse_forest_vegetation.rslt_forest_cover_inv_svw",
         "name": "whse_forest_vegetation.rslt_forest_cover_inv_svw",
-        "query": "STOCKING_STATUS_CODE = 'NP' AND STOCKING_TYPE_CODE IN ('RD','UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'",
+        "query": "STOCKING_STATUS_CODE in (‘NP, 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'",
         "columns":
             [
                 "forest_cover_id",
