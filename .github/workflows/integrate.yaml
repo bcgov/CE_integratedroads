@@ -32,4 +32,5 @@ jobs:
         uses: actions/checkout@v4
       - name: integrate
         run:  |
+          jobs/00_setup_db
           jobs/06_integratedroads
