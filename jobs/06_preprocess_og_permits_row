@@ -29,7 +29,7 @@ $PSQL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM whse_mineral_tenure.og_road_area_permit_sp r
     ORDER BY map_tile" \
-     | parallel --bar \
+     | parallel \
        $PSQL -f sql/roadpoly2line.sql \
        -v tile={1} \
        -v in_table=whse_mineral_tenure.og_road_area_permit_sp \

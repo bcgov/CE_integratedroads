@@ -30,7 +30,7 @@ $PSQL -tXA \
   -c "SELECT DISTINCT map_tile
       FROM whse_forest_tenure.ften_road_section_lines_svw_active
       ORDER BY map_tile" \
-  | parallel --bar $PSQL -f sql/preprocess_ften_active.sql -v tile={1} > /dev/null
+  | parallel $PSQL -f sql/preprocess_ften_active.sql -v tile={1} > /dev/null
 
 # dump to file
 ogr2ogr \

@@ -30,7 +30,7 @@ $PSQL -tXA \
     FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r
     WHERE ST_ISValid(geom)
     ORDER BY map_tile" \
-    | parallel --bar \
+    | parallel \
       $PSQL -f sql/roadpoly2line.sql \
         -v tile={1} \
         -v in_table=whse_forest_vegetation.rslt_forest_cover_inv_svw \
