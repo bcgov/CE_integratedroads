@@ -1,0 +1,38 @@
+name: preprocess
+run-name: ${{ github.actor }} Preprocess data
+on:
+  workflow_dispatch:
+env:
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+  AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
+  AWS_S3_ENDPOINT: nrs.objectstore.gov.bc.ca
+  AWS_VIRTUAL_HOSTING: FALSE
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OBJECTSTORE_BUCKET: ${{ secrets.OBJECTSTORE_BUCKET }}
+  AWS_EC2_METADATA_DISABLED: true
+  CPL_VSISTDIN_BUFFER_LIMIT: -1
+jobs:
+  preprocess_ften_active:
+    runs-on: ubuntu-latest
+    environment: production
+    container: ghcr.io/smnorris/gha_testing:main
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Setup
+        run:  |
+          jobs/setup_db
+          jobs/03_preprocess_ften_active

@@ -14,7 +14,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select forest_cover_id,map_tile \
-  tiled/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
 
 $PSQL -c "DROP TABLE IF EXISTS results"

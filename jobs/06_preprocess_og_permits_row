@@ -14,7 +14,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select og_road_area_permit_id,map_tile \
-  tiled/whse_mineral_tenure.og_road_area_permit_sp.parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 
 $PSQL -c "DROP TABLE IF EXISTS og_permits_row"

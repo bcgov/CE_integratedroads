@@ -14,7 +14,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select map_label,map_tile \
-  tiled/whse_forest_tenure.ften_road_section_lines_svw_active.parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw_active.parquet \
   whse_forest_tenure.ften_road_section_lines_svw_active
 
 $PSQL -c "DROP TABLE IF EXISTS ften_active"
