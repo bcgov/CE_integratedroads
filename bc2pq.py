@@ -122,7 +122,10 @@ def process(
 
     # dump to file
     log.info(f"Writing data to {out_file}")
-    out_df.to_file(out_file, driver="Parquet")
+    # use df.to_parquet(s3://bucket/object.parquet because
+    # df.to_file(/vsis3/bucket/object.parquet) uses fiona, and fiona can be bundled
+    # with older gdal without parquet support
+    out_df.to_parquet(out_file)
 
 
 # tab completion object names not currently supported
@@ -203,7 +206,7 @@ def bc2pq(
             for layer in json.load(f):
                 process(
                     layer["dataset"],
-                    out_file="/vsis3/" + os.environ["OBJECTSTORE_BUCKET"] + "/" + layer["name"] + ".parquet",
+                    out_file="s3://" + os.environ["OBJECTSTORE_BUCKET"] + "/" + layer["name"] + ".parquet",
                     query=layer["query"],
                     dst_crs=dst_crs,
                     bounds=bounds,
