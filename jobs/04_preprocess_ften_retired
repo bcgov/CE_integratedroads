@@ -30,7 +30,6 @@ $PSQL -tXA \
   -c "SELECT DISTINCT map_tile
       FROM whse_forest_tenure.ften_road_section_lines_svw_retired
       ORDER BY map_tile" \
-  | parallel --progress \
-  $PSQL -f sql/preprocess_ften_retired.sql -v tile={1}
+  | parallel $PSQL -f sql/preprocess_ften_retired.sql -v tile={1}
 
 $PSQL -c "CREATE INDEX on ften_retired USING GIST (geom);"
