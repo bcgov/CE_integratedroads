@@ -30,6 +30,45 @@ ogr2ogr \
   /vsis3/$OBJECTSTORE_BUCKET/ften_cleaned.parquet \
   ften_cleaned
 
+# create views of retired/active ften roads
+$PSQL -c "create view ften_active as (
+  select
+    forest_file_id,
+    road_section_id,
+    file_status_code,
+    file_type_code,
+    file_type_description,
+    life_cycle_status_code,
+    award_date,
+    retirement_date,
+    client_number,
+    client_name,
+    map_label,
+    map_tile,
+    geom
+  from whse_forest_tenure.ften_road_section_lines_svw
+  where life_cycle_status_code = 'ACTIVE'
+)"
+
+$PSQL -c "create view ften_retired as (
+  select
+    forest_file_id,
+    road_section_id,
+    file_status_code,
+    file_type_code,
+    file_type_description,
+    life_cycle_status_code,
+    award_date,
+    retirement_date,
+    client_number,
+    client_name,
+    map_label,
+    map_tile,
+    geom
+  from whse_forest_tenure.ften_road_section_lines_svw
+  where life_cycle_status_code = 'ACTIVE'
+)"
+
 # results - both polys and lines are required
 ogr2ogr \
   -f PostgreSQL \

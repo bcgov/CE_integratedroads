@@ -1,5 +1,5 @@
 -- -----------------------
--- clean retired FTEN roads slightly, snapping endpoints and re-noding
+-- clean active FTEN roads slightly, snapping endpoints and re-noding
 -- -----------------------
 
 WITH src AS (
@@ -9,17 +9,15 @@ WITH src AS (
       map_label,
       map_tile,
       (ST_Dump(geom)).geom as geom
-    FROM whse_forest_tenure.ften_road_section_lines_svw_retired r
+    FROM whse_forest_tenure.ften_road_section_lines_svw r
     WHERE map_tile = :'tile'
     ) as f
 ),
-
 
 start_snapped AS
 (
   SELECT
   a.id,
-  a.map_label,
   ST_LineInterpolatePoint(
     nn.geom,
     ST_LineLocatePoint(
@@ -49,8 +47,6 @@ end_snapped AS
 (
   SELECT
   a.id,
-  a.map_label,
-  a.geom as geom_t,
   ST_LineInterpolatePoint(
     nn.geom,
     ST_LineLocatePoint(
@@ -123,7 +119,7 @@ noded_attrib AS
   ORDER BY n.id, ST_Length(ST_Intersection(n.geom, t.geom)) DESC
 )
 
-INSERT INTO ften_retired
+INSERT INTO ften_cleaned
 (map_tile, map_label, geom)
 SELECT
   map_tile,
