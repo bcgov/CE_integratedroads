@@ -33,6 +33,7 @@ $PSQL -c "CREATE TABLE ften_cleaned (
   file_type_description text,
   life_cycle_status_code text,
   award_date date,
+  retirement_date date,
   client_number text,
   client_name text,
   map_label text,
