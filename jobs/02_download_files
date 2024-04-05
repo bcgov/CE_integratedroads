@@ -23,24 +23,28 @@ python intersect.py \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet
 
-# dump dra code tables to csv
+# dump dra code tables to csv and send to s3 vis awscli
 ogr2ogr \
   -f CSV \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_structure_code.csv \
+  tmp/whse_basemapping.transport_line_structure_code.csv \
   /vsizip/tmp/dgtl_road_atlas.gdb.zip \
   TRANSPORT_LINE_STRUCTURE_CODE
 
 ogr2ogr \
   -f CSV \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_type_code.csv \
+  tmp/whse_basemapping.transport_line_type_code.csv \
   /vsizip/tmp/dgtl_road_atlas.gdb.zip \
   TRANSPORT_LINE_TYPE_CODE
 
 ogr2ogr \
   -f CSV \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_surface_code.csv \
+  tmp/whse_basemapping.transport_line_surface_code.csv \
   /vsizip/tmp/dgtl_road_atlas.gdb.zip \
   TRANSPORT_LINE_SURFACE_CODE
+
+aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$OBJECTSTORE_BUCKET
+aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$OBJECTSTORE_BUCKET
+aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$OBJECTSTORE_BUCKET
 
 # Cariboo Roads
 curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Cariboo_Consolidated_Roads_20240304.zip \
