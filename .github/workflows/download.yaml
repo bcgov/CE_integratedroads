@@ -13,15 +13,6 @@ env:
   AWS_EC2_METADATA_DISABLED: true
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
-  download-wfs:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: WFS data - download/tile/dump
-        run:  |
-          jobs/01_download_wfs
   download-files:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
