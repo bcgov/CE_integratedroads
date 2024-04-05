@@ -127,6 +127,16 @@ ogr2ogr \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 
+# cariboo roads
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln cariboo_consolidated_roads \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
+  cariboo_consolidated_roads
+
 # dra code tables
 $PSQL -c "DROP TABLE IF EXISTS whse_basemapping.transport_line_structure_code;
 DROP TABLE IF EXISTS whse_basemapping.transport_line_surface_code;

@@ -6,6 +6,16 @@ WITH src AS (
   SELECT row_number() over() as id, *
   FROM (
     SELECT
+      forest_file_id,
+      road_section_id,
+      file_status_code,
+      file_type_code,
+      file_type_description,
+      life_cycle_status_code,
+      award_date,
+      retirement_date,
+      client_number,
+      client_name,
       map_label,
       map_tile,
       (ST_Dump(geom)).geom as geom
@@ -119,10 +129,34 @@ noded_attrib AS
   ORDER BY n.id, ST_Length(ST_Intersection(n.geom, t.geom)) DESC
 )
 
-INSERT INTO ften_cleaned
-(map_tile, map_label, geom)
-SELECT
-  map_tile,
+INSERT INTO ften_cleaned (
+  forest_file_id,
+  road_section_id,
+  file_status_code,
+  file_type_code,
+  file_type_description,
+  life_cycle_status_code,
+  award_date,
+  retirement_date,
+  client_number,
+  client_name,
   map_label,
+  map_tile,
   geom
-FROM noded_attrib;
+)
+SELECT
+  s.forest_file_id,
+  s.road_section_id,
+  s.file_status_code,
+  s.file_type_code,
+  s.file_type_description,
+  s.life_cycle_status_code,
+  s.award_date,
+  s.retirement_date,
+  s.client_number,
+  s.client_name,
+  n.map_label,
+  n.map_tile,
+  n.geom
+FROM noded_attrib n
+inner join src s on n.map_label = s.map_label;
