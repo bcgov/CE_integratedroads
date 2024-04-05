@@ -1,7 +1,7 @@
 version: "3.9"  
 services:
   db:
-    image: postgis/postgis:16-3.4
+    image: postgis:16-3.4
     container_name: ce_integratedroads
     ports:
       - 8001:5432
@@ -13,14 +13,14 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - PG_DATABASE=ce_integratedroads
+      - PG_DATABASE=postgres
   app:
     build: .
     container_name: ce_integratedroads-client
     volumes:
       - "./:/home/ce_integratedroads"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ce_integratedroads
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
       - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL}
       - AWS_S3_ENDPOINT=${AWS_S3_ENDPOINT}
       - OBJECTSTORE_BUCKET=${OBJECTSTORE_BUCKET}

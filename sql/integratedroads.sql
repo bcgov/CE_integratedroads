@@ -82,10 +82,10 @@ bcgw AS
 )
 
 SELECT
-  i.integratedroads_id AS INTEGRATEDROADS_ID,
-  bcgw.bcgw_source AS BCGW_SOURCE,
-  map_tile AS MAP_TILE,
-  i.transport_line_id AS TRANSPORT_LINE_ID,
+  i.integratedroads_id                      AS INTEGRATEDROADS_ID,
+  bcgw.bcgw_source                          AS BCGW_SOURCE,
+  i.map_tile                                AS MAP_TILE,
+  i.transport_line_id                       AS TRANSPORT_LINE_ID,
   dra_struct.description                    AS DRA_STRUCTURE,
   dra_type.description                      AS DRA_TYPE,
   dra_surf.description                      AS DRA_SURFACE,
@@ -184,11 +184,11 @@ len_per_source AS
   SELECT
     p.priority,
     r.bcgw_source,
-    to_char(r.bcgw_extraction_date, 'YYYY-MM-DD') as bcgw_extraction_date,
+    to_char(CURRENT_DATE, 'YYYY-MM-DD') as bcgw_extraction_date,
     SUM(ST_Length(geom)) / 1000 as length_km
   FROM integratedroads_vw r
   INNER JOIN source_priority p ON r.bcgw_source = UPPER(p.bcgw_source)
-  GROUP BY p.priority, r.bcgw_source, to_char(r.bcgw_extraction_date, 'YYYY-MM-DD')
+  GROUP BY p.priority, r.bcgw_source, to_char(CURRENT_DATE, 'YYYY-MM-DD')
 )
 
 SELECT

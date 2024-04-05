@@ -89,7 +89,7 @@ If using Docker:
 
 Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml`:
 
-        psql postgresql://postgres:postgres@localhost:8001/roadintegrator
+        psql postgresql://postgres:postgres@localhost:8001/postgres
 
 ## Duplications
 

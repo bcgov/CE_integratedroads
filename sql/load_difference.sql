@@ -9,19 +9,8 @@ WITH tile AS
     map_tile,
     :pk,
     (ST_Dump(geom)).geom as geom
-  FROM (
-    SELECT
-     t.map_tile,
-     r.:pk,
-      CASE
-        WHEN ST_CoveredBy(r.geom, t.geom) THEN ST_Force2D(r.geom)
-        ELSE ST_Force2D(ST_Intersection(t.geom, r.geom))
-      END AS geom
-    FROM :src_roads r
-    INNER JOIN whse_basemapping.bcgs_20k_grid t
-    ON ST_Intersects(r.geom, t.geom)
-    WHERE t.map_tile = :'tile'
-  ) as f
+  FROM :src_roads
+  WHERE map_tile = :'tile'
 ),
 
 -- find higher priority roads within 7m of the roads selected above
