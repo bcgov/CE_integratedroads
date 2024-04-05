@@ -14,7 +14,8 @@
                 "award_date",
                 "retirement_date",
                 "client_number",
-                "client_name"
+                "client_name",
+                "map_label"
             ],
         "promote_to_multi": true
     },
@@ -33,7 +34,8 @@
                 "award_date",
                 "retirement_date",
                 "client_number",
-                "client_name"
+                "client_name",
+                "map_label"
             ],
         "promote_to_multi": true
     },

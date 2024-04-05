@@ -6,7 +6,6 @@
 
 PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 
-$PSQL -c "CREATE EXTENSION postgis"
 $PSQL -c "CREATE EXTENSION postgis_sfcgal"
 
 $PSQL -c "CREATE SCHEMA whse_basemapping"
