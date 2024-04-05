@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/setup_db
+          jobs/00_setup_db
           jobs/03_preprocess_ften
   preprocess_results:
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/setup_db
+          jobs/00_setup_db
           jobs/04_preprocess_results
   preprocess_og_permits_row:
     runs-on: ubuntu-latest
@@ -95,5 +95,5 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/setup_db
+          jobs/00_setup_db
           jobs/05_preprocess_og_permits_row
