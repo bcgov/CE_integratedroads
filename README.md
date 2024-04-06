@@ -57,15 +57,9 @@ Clone the repository, navigate to the project folder:
         git clone https://github.com/bcgov/CE_integratedroads.git
         cd CE_integratedroads
 
-If you do not have above noted requirements installed on your system, using Docker is recommended. Instructions for Docker usage are below.
-
+If you do not have above noted requirements installed on your system, using Docker is recommended.
 
 ### Docker
-
-Install Docker for your OS:
-
-- [MacOS](https://download.docker.com/mac/stable/Docker.dmg)
-- [Windows](https://download.docker.com/win/stable/Docker%20Desktop%20Installer.exe)
 
 Build and start the containers:
 
