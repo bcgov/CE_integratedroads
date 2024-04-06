@@ -133,6 +133,7 @@ ogr2ogr \
   "PG:$DATABASE_URL" \
   -nln cariboo_consolidated_roads \
   -lco GEOMETRY_NAME=geom \
+  -nlt PROMOTE_TO_MULTI \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
   cariboo_consolidated_roads
