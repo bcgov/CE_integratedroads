@@ -5,5 +5,6 @@
 *.log
 *.parquet
 *.csv
+.env
 .make*
 !.gitignore
