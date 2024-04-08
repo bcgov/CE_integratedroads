@@ -33,6 +33,7 @@ ogr2ogr \
 # create views of retired/active ften roads
 $PSQL -c "create view ften_active as (
   select
+    row_number() over() as id,
     life_cycle_status_code,
     map_label,
     map_tile,
@@ -43,6 +44,7 @@ $PSQL -c "create view ften_active as (
 
 $PSQL -c "create view ften_retired as (
   select
+    row_number() over() as id,
     life_cycle_status_code,
     map_label,
     map_tile,
@@ -245,9 +247,20 @@ $PSQL -c "CREATE INDEX ON integratedroads (og_petrlm_dev_rd_pre06_pub_id)"
 $PSQL -c "CREATE INDEX ON integratedroads (og_road_segment_permit_id)"
 
 
-# for all output features, identify what other source roads intersect with the road's 7m buffer
-$PSQL -tXA -c "SELECT DISTINCT map_tile FROM integratedroads ORDER BY map_tile" \
+# for all features not present only in DRA, identify what other source roads
+# intersect with the road's 7m buffer
+$PSQL -tXA -c "SELECT DISTINCT map_tile
+               FROM integratedroads
+               WHERE
+                map_label is not null or
+                results_id is not null or
+                road_section_line_id is not null or
+                og_petrlm_dev_rd_pre06_pub_id is not null or
+                og_road_segment_permit_id is not null or
+                og_permits_row_id is not null
+               ORDER BY map_tile" \
   | parallel --tag $PSQL -f sql/load_sources.sql -v tile={1}
+
 $PSQL -c "CREATE INDEX ON integratedroads_sources (integratedroads_id)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (map_label)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (forest_cover_id)"
