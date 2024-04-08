@@ -12,7 +12,7 @@ SELECT DISTINCT ON (i.integratedroads_id)
   COALESCE(i.og_petrlm_dev_rd_pre06_pub_id, src.og_petrlm_dev_rd_pre06_pub_id) as og_petrlm_dev_rd_pre06_pub_id,
   COALESCE(i.og_road_segment_permit_id, src.og_road_segment_permit_id) as og_road_segment_permit_id,
   src.og_road_area_permit_id
-FROM integratedroads i
+FROM integratedroads_1 i
 LEFT OUTER JOIN integratedroads_sources src ON i.integratedroads_id = src.integratedroads_id
 ORDER BY 
   i.integratedroads_id,

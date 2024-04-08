@@ -1,17 +1,17 @@
 -- ----------------------------
 -- load_sources.sql
 --
--- Find *all* additional sources that intersect the 7m buff of every road loaded to integratedroads table.
+-- Find *all* additional sources that intersect the 7m buff of every road loaded to integratedroads_1 table.
 -- Look at each source separately, in order of priority, finding roads of lower priority that intersect the 7m buffer.
 -- For polygonal road sources, also identify which polygonal road is the source as the poly ids are not
--- retained in integratedroads table.
+-- retained in integratedroads_1 table.
 -- ----------------------------
 
 CREATE TEMPORARY TABLE buffers AS
 SELECT
   integratedroads_id,
   st_buffer(geom, 7) as geom
-FROM integratedroads
+FROM integratedroads_1
 WHERE map_tile = :'tile';
 
 ANALYZE buffers;
@@ -44,7 +44,7 @@ SELECT
   ROUND((ST_Length(ST_Intersection(b.geom, og_permits.geom)))::numeric, 2) as og_permits_length,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_forest_tenure.ften_road_section_lines_svw ften
   ON ST_Intersects(b.geom, ften.geom)
@@ -90,7 +90,7 @@ SELECT
   ROUND((ST_Length(ST_Intersection(b.geom, og_permits.geom)))::numeric, 2) as og_permits_length,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_forest_vegetation.rslt_forest_cover_inv_svw results
   ON ST_Intersects(b.geom, results.geom)
@@ -134,7 +134,7 @@ SELECT
   ROUND((ST_Length(ST_Intersection(b.geom, og_permits.geom)))::numeric, 2) as og_permits_length,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_forest_vegetation.rslt_forest_cover_inv_svw results
   ON ST_Intersects(b.geom, results.geom)
@@ -169,7 +169,7 @@ SELECT
   ROUND((ST_Length(ST_Intersection(b.geom, og_permits.geom)))::numeric, 2) as og_permits_length,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_mineral_tenure.og_road_segment_permit_sp og_permits
   ON ST_Intersects(b.geom, og_permits.geom)
@@ -195,7 +195,7 @@ SELECT
   i.integratedroads_id,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_mineral_tenure.og_road_area_permit_sp og_permits_row
   ON ST_Intersects(b.geom, og_permits_row.geom)
@@ -216,7 +216,7 @@ SELECT
   i.integratedroads_id,
   og_permits_row.og_road_area_permit_id,
   ROUND((ST_Area(ST_Intersection(b.geom, og_permits_row.geom)))::numeric, 2) as og_permits_row_area
-FROM integratedroads i
+FROM integratedroads_1 i
 INNER JOIN buffers b ON i.integratedroads_id = b.integratedroads_id
 LEFT OUTER JOIN whse_mineral_tenure.og_road_area_permit_sp og_permits_row
   ON ST_Intersects(b.geom, og_permits_row.geom)
