@@ -88,44 +88,48 @@ def process(
         lowercase=True,
     )
 
-    # tidy the dataframe
-    df = df.rename_geometry("geom")
+    # only operate on dataframe if there is data
+    if len(df.index != 0):
+        # tidy the dataframe
+        df = df.rename_geometry("geom")
 
-    # retain only columns requested
-    if columns:
-        df = df[columns + ["geom"]]
+        # retain only columns requested
+        if columns:
+            df = df[columns + ["geom"]]
 
-    # if specified, cast to everything multipart (responses can have mixed types)
-    # geopandas does not have a built in function:
-    # https://gis.stackexchange.com/questions/311320/casting-geometry-to-multi-using-geopandas
-    if promote_to_multi:
-        df["geom"] = [
-            MultiPoint([feature]) if isinstance(feature, Point) else feature
-            for feature in df["geom"]
-        ]
-        df["geom"] = [
-            MultiLineString([feature]) if isinstance(feature, LineString) else feature
-            for feature in df["geom"]
-        ]
-        df["geom"] = [
-            MultiPolygon([feature]) if isinstance(feature, Polygon) else feature
-            for feature in df["geom"]
-        ]
+        # if specified, cast to everything multipart (responses can have mixed types)
+        # geopandas does not have a built in function:
+        # https://gis.stackexchange.com/questions/311320/casting-geometry-to-multi-using-geopandas
+        if promote_to_multi:
+            df["geom"] = [
+                MultiPoint([feature]) if isinstance(feature, Point) else feature
+                for feature in df["geom"]
+            ]
+            df["geom"] = [
+                MultiLineString([feature]) if isinstance(feature, LineString) else feature
+                for feature in df["geom"]
+            ]
+            df["geom"] = [
+                MultiPolygon([feature]) if isinstance(feature, Polygon) else feature
+                for feature in df["geom"]
+            ]
 
-    # if specified, intersect with tile_dataset
-    if tile_dataset:
-        log.info(f"Intersecting {dataset} with {tile_dataset}")
-        tiles = geopandas.read_parquet(tile_dataset)
-        out_df = df.overlay(tiles, how="intersection")
+        # if specified, intersect with tile_dataset
+        if tile_dataset:
+            log.info(f"Intersecting {dataset} with {tile_dataset}")
+            tiles = geopandas.read_parquet(tile_dataset)
+            out_df = df.overlay(tiles, how="intersection")
+        else:
+            out_df = df
+
+        # dump to file
+        log.info(f"Writing data to {out_file}")
+        # use df.to_parquet(s3://bucket/object.parquet because
+        # df.to_file(/vsis3/bucket/object.parquet) uses fiona, and fiona can be bundled
+        # with older gdal without parquet support
+        out_df.to_parquet(out_file)
     else:
-        out_df = df
-
-    # dump to file
-    log.info(f"Writing data to {out_file}")
-    # use df.to_parquet(s3://bucket/object.parquet because
-    # df.to_file(/vsis3/bucket/object.parquet) uses fiona, and fiona can be bundled
-    # with older gdal without parquet support
-    out_df.to_parquet(out_file)
+        log.info("No data returned, parquet file not created")
 
 
 # tab completion object names not currently supported

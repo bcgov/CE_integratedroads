@@ -1,4 +1,4 @@
-# Ignore data dumps, logfiles, make files
+# Ignore data dumps, logfiles, make targets
 *.gpkg
 *.gdb
 *.zip

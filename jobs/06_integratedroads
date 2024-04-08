@@ -20,29 +20,20 @@ ogr2ogr \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
   whse_basemapping.transport_line
 
-# ften, just load cleaned version
+# ften
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
   -nln whse_forest_tenure.ften_road_section_lines_svw \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
-  /vsis3/$OBJECTSTORE_BUCKET/ften_cleaned.parquet \
-  ften_cleaned
+  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
+  whse_forest_tenure.ften_road_section_lines_svw
 
 # create views of retired/active ften roads
 $PSQL -c "create view ften_active as (
   select
-    forest_file_id,
-    road_section_id,
-    file_status_code,
-    file_type_code,
-    file_type_description,
     life_cycle_status_code,
-    award_date,
-    retirement_date,
-    client_number,
-    client_name,
     map_label,
     map_tile,
     geom
@@ -52,21 +43,12 @@ $PSQL -c "create view ften_active as (
 
 $PSQL -c "create view ften_retired as (
   select
-    forest_file_id,
-    road_section_id,
-    file_status_code,
-    file_type_code,
-    file_type_description,
     life_cycle_status_code,
-    award_date,
-    retirement_date,
-    client_number,
-    client_name,
     map_label,
     map_tile,
     geom
   from whse_forest_tenure.ften_road_section_lines_svw
-  where life_cycle_status_code = 'ACTIVE'
+  where life_cycle_status_code = 'RETIRED'
 )"
 
 # results - both polys and lines are required
@@ -213,45 +195,62 @@ $PSQL -tXA \
         (st_dump(geom)).geom
       FROM whse_basemapping.transport_line"
 
-# load all other sources
+# load all other sources in descending order of priority
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM ften_active
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=ften_active -v pk=map_label
 
-# define all source tables and their primary keys in array
-# bash arrays are like older python dicts, they are not ordered...
-# https://stackoverflow.com/questions/29161323/how-to-keep-associative-array-order
-declare -A tables;      declare -a ordered;
-tables["ften_active"]="map_label"; ordered+=("ften_active")
-tables["ften_retired"]="map_label"; ordered+=("ften_retired")
-tables["results"]="results_id"; ordered+=("results")
-tables["whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp"]="og_petrlm_dev_rd_pre06_pub_id"; ordered+=("whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp")
-tables["whse_mineral_tenure.og_road_segment_permit_sp"]="og_road_segment_permit_id"; ordered+=("whse_mineral_tenure.og_road_segment_permit_sp")
-tables["og_permits_row"]="og_permits_row_id"; ordered+=("og_permits_row")
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM ften_retired
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=ften_retired -v pk=map_label
 
-for source_table in "${ordered[@]}"
-do
-  echo "Processing: $source_table"
-  psql $DATABASE_URL -tXA \
-  -c "SELECT DISTINCT map_tile
-      FROM $source_table r
-      ORDER BY map_tile" \
-      | parallel --tag \
-        $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=$source_table -v pk=${tables[$source_table]}
-done
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM results
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=results -v pk=results_id
+
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp -v pk=og_petrlm_dev_rd_pre06_pub_id
+
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM whse_mineral_tenure.og_road_segment_permit_sp
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=whse_mineral_tenure.og_road_segment_permit_sp -v pk=og_road_segment_permit_id
+
+psql $DATABASE_URL -tXA \
+-c "SELECT DISTINCT map_tile
+    FROM og_permits_row
+    ORDER BY map_tile" \
+    | parallel --tag \
+      $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=og_permits_row -v pk=og_permits_row_id
 
 # index the foreign keys for faster joins back to source tables
 $PSQL -c "CREATE INDEX ON integratedroads (transport_line_id)"
 $PSQL -c "CREATE INDEX ON integratedroads (map_label)"
-$PSQL -c "CREATE INDEX ON integratedroads (road_section_line_id)"
 $PSQL -c "CREATE INDEX ON integratedroads (og_petrlm_dev_rd_pre06_pub_id)"
 $PSQL -c "CREATE INDEX ON integratedroads (og_road_segment_permit_id)"
 
 
 # for all output features, identify what other source roads intersect with the road's 7m buffer
 $PSQL -tXA -c "SELECT DISTINCT map_tile FROM integratedroads ORDER BY map_tile" \
-  | parallel --bar $PSQL -f sql/load_sources.sql -v tile={1}
+  | parallel --tag $PSQL -f sql/load_sources.sql -v tile={1}
 $PSQL -c "CREATE INDEX ON integratedroads_sources (integratedroads_id)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (map_label)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (forest_cover_id)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (road_section_line_id)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (og_petrlm_dev_rd_pre06_pub_id)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (og_road_segment_permit_id)"
 $PSQL -c "CREATE INDEX ON integratedroads_sources (og_road_area_permit_id)"
@@ -264,7 +263,6 @@ ogr2ogr \
   -f Parquet \
   -nlt LINESTRING \
   -nln integratedroads \
-  -lco GEOMETRY_NULLABLE=NO \
   -sql "SELECT * FROM integratedroads_vw" \
   /vsis3/$OBJECTSTORE_BUCKET/integratedroads.parquet \
   "PG:$DATABASE_URL"

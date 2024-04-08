@@ -50,6 +50,6 @@ $PSQL -tXA \
 # dump to file
 ogr2ogr \
   -f Parquet \
-  /vsis3/$OBJECTSTORE_BUCKET/ften_cleaned.parquet \
+  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   PG:$DATABASE_URL \
   -sql "select * from ften_cleaned"
