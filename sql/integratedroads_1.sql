@@ -13,7 +13,7 @@ CREATE TABLE integratedroads_1 (
     og_permits_row_id integer,
     geom geometry(Linestring, 3005)
 );
-CREATE INDEX ON integratedroads USING GIST (geom);
+CREATE INDEX ON integratedroads_1 USING GIST (geom);
 
 -- initial source id table
 -- note that the id is not unique, rows are inserted per source
