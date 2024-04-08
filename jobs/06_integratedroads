@@ -19,6 +19,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
   whse_basemapping.transport_line
+$PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"
+$PSQL -c "create index on whse_basemapping.transport_line (map_tile)"
 
 # ften
 ogr2ogr \
@@ -29,6 +31,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   whse_forest_tenure.ften_road_section_lines_svw
+$PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
+$PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_tile)"
 
 # create views of retired/active ften roads
 $PSQL -c "create view ften_active as (
@@ -72,6 +76,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
+$PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (forest_cover_id)"
+$PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (map_tile)"
 
 # ogc linear features
 ogr2ogr \
@@ -82,6 +88,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
   whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
+$PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (og_petrlm_dev_rd_pre06_pub_id)"
+$PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (map_tile)"
 
 ogr2ogr \
   -f PostgreSQL \
@@ -91,6 +99,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
   whse_mineral_tenure.og_road_segment_permit_sp
+$PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (og_road_segment_permit_id)"
+$PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (map_tile)"
 
 ogr2ogr \
   -f PostgreSQL \
@@ -110,6 +120,8 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
+$PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
+$PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (map_tile)"
 
 # cariboo roads
 ogr2ogr \
@@ -121,6 +133,9 @@ ogr2ogr \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
   cariboo_consolidated_roads
+#$PSQL -c "create unique index on cariboo_consolidated_roads (ccr_id, map_tile)"
+# ccr_id is not unique, use ogc_fid for cariboo roads
+$PSQL -c "create index on cariboo_consolidated_roads (map_tile)"
 
 # dra code tables
 $PSQL -c "DROP TABLE IF EXISTS whse_basemapping.transport_line_structure_code;
@@ -180,13 +195,15 @@ ogr2ogr \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_structure_code.csv \
   whse_basemapping.transport_line_structure_code
 
+# ----------
+# process the roads
+# ----------
+# create initial output geometry table / source table
+$PSQL -f sql/integratedroads_1.sql
 
-# now create output table
-$PSQL -f sql/integratedroads.sql
-
-# and load dra to output
+# load dra to output
 $PSQL -tXA \
-  -c "INSERT INTO integratedroads (
+  -c "INSERT INTO integratedroads_1 (
         transport_line_id,
         map_tile,
         geom
@@ -194,7 +211,7 @@ $PSQL -tXA \
       SELECT
         transport_line_id,
         map_tile,
-        (st_dump(geom)).geom
+        ST_MakeValid((st_dump(geom)).geom) as geom
       FROM whse_basemapping.transport_line"
 
 # load all other sources in descending order of priority
@@ -240,15 +257,10 @@ psql $DATABASE_URL -tXA \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=og_permits_row -v pk=og_permits_row_id
 
-# index the foreign keys for faster joins back to source tables
-$PSQL -c "CREATE INDEX ON integratedroads (transport_line_id)"
-$PSQL -c "CREATE INDEX ON integratedroads (map_label)"
-$PSQL -c "CREATE INDEX ON integratedroads (og_petrlm_dev_rd_pre06_pub_id)"
-$PSQL -c "CREATE INDEX ON integratedroads (og_road_segment_permit_id)"
-
-
+# ----------
 # for all features not present only in DRA, identify what other source roads
 # intersect with the road's 7m buffer
+# ----------
 $PSQL -tXA -c "SELECT DISTINCT map_tile
                FROM integratedroads
                WHERE
@@ -261,30 +273,27 @@ $PSQL -tXA -c "SELECT DISTINCT map_tile
                ORDER BY map_tile" \
   | parallel --tag $PSQL -f sql/load_sources.sql -v tile={1}
 
-$PSQL -c "CREATE INDEX ON integratedroads_sources (integratedroads_id)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (map_label)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (forest_cover_id)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (og_petrlm_dev_rd_pre06_pub_id)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (og_road_segment_permit_id)"
-$PSQL -c "CREATE INDEX ON integratedroads_sources (og_road_area_permit_id)"
 
+$PSQL -f sql/integratedroads_2.sql  # note all sources associated with an output geom
+$PSQL -f sql/integratedroads.sql    # create output table
 
-$PSQL -c "REFRESH MATERIALIZED VIEW integratedroads_vw"
 
 # dump to file
 ogr2ogr \
   -f Parquet \
   -nlt LINESTRING \
   -nln integratedroads \
-  -sql "SELECT * FROM integratedroads_vw" \
+  -sql "SELECT * FROM integratedroads" \
   /vsis3/$OBJECTSTORE_BUCKET/integratedroads.parquet \
   "PG:$DATABASE_URL"
+
+$PSQL --csv -f sql/summary.sql > summary.csv
 
 # summarize road source by length and percentage in the output gpkg
 $PSQL --csv -c "WITH total AS \
 ( \
   SELECT SUM(ST_Length(geom)) AS total_length \
-  FROM integratedroads_vw \
+  FROM integratedroads \
 ) \
 SELECT \
   bcgw_source, \
@@ -292,8 +301,8 @@ SELECT \
   ROUND((SUM(ST_Length(geom) / 1000)::numeric))  AS length_km, \
   ROUND( \
     (((SUM(ST_Length(geom)) / t.total_length)) * 100)::numeric, 1) as pct \
-FROM integratedroads_vw, total t \
+FROM integratedroads, total t \
 GROUP BY bcgw_source, to_char(bcgw_extraction_date, 'YYYY-MM-DD'), total_length \
 ORDER BY bcgw_source" > bcgw_source_summary.csv
 
-aws s3 cp bcgw_source_summary.csv s3://$OBJECTSTORE_BUCKET
+#aws s3 cp bcgw_source_summary.csv s3://$OBJECTSTORE_BUCKET

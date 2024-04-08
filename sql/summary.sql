@@ -1,4 +1,4 @@
-COPY (WITH source_priority AS (
+WITH source_priority AS (
   SELECT * FROM (VALUES
   (1,'whse_basemapping.transport_line'),
   (2,'whse_forest_tenure.ften_road_section_lines_svw'),
@@ -13,7 +13,7 @@ COPY (WITH source_priority AS (
 total AS
 (
   SELECT SUM(ST_Length(geom)) / 1000 AS total_km
-  FROM integratedroads_vw
+  FROM integratedroads
 ),
 
 len_per_source AS
@@ -21,11 +21,11 @@ len_per_source AS
   SELECT
     p.priority,
     r.bcgw_source,
-    to_char(r.bcgw_extraction_date, 'YYYY-MM-DD') as bcgw_extraction_date,
+    to_char(CURRENT_DATE, 'YYYY-MM-DD') as bcgw_extraction_date,
     SUM(ST_Length(geom)) / 1000 as length_km
-  FROM integratedroads_vw r
+  FROM integratedroads r
   INNER JOIN source_priority p ON r.bcgw_source = UPPER(p.bcgw_source)
-  GROUP BY p.priority, r.bcgw_source, to_char(r.bcgw_extraction_date, 'YYYY-MM-DD')
+  GROUP BY p.priority, r.bcgw_source, to_char(CURRENT_DATE, 'YYYY-MM-DD')
 )
 
 SELECT
@@ -42,4 +42,4 @@ SELECT
   'TOTAL' as bcgw_extraction_date,
   to_char(total_km, 'FM999,999,999') as total_km,
   '' length_pct
-FROM total) TO STDOUT CSV HEADER;
+FROM total

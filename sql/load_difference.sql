@@ -18,7 +18,7 @@ higher_priority AS
 (SELECT
     i.geom
   FROM tile t
-  INNER JOIN integratedroads i
+  INNER JOIN integratedroads_1 i
   ON ST_DWithin(t.geom, i.geom, 8)
   WHERE i.map_tile = :'tile'
 ),
@@ -137,12 +137,12 @@ new AS
 )
 
 -- and insert
-INSERT INTO integratedroads
+INSERT INTO integratedroads_1
 (map_tile, :pk, geom)
 SELECT
   map_tile,
   :pk,
-  geom
+  st_makevalid(geom) as geom
 FROM snapped
 WHERE ST_Dimension(geom) = 1
 AND ST_Length(geom) > 5
@@ -150,6 +150,6 @@ UNION ALL
 SELECT
   map_tile,
   :pk,
-  geom
+  st_makevalid(geom) as geom
 FROM new
 WHERE ST_Dimension(geom) = 1;
