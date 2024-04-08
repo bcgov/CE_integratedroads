@@ -31,7 +31,7 @@ jobs:
       - name: File data - download/tile/dump
         run:  |
           jobs/02_download_files
-  preprocess_ften:
+  preprocess-ften:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
     needs: download-wfs
@@ -53,7 +53,7 @@ jobs:
         run:  |
           jobs/00_setup_db
           jobs/03_preprocess_ften
-  preprocess_results:
+  preprocess-results:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
     needs: download-wfs
@@ -75,7 +75,7 @@ jobs:
         run:  |
           jobs/00_setup_db
           jobs/04_preprocess_results
-  preprocess_og_permits_row:
+  preprocess-og-permits-row:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
     needs: download-wfs
@@ -100,7 +100,7 @@ jobs:
   integratedroads:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: [preprocess_og_permits_row, preprocess_results, preprocess_ften, download_files]
+    needs: [preprocess-og-permits-row, preprocess-results, preprocess-ften, download-files]
     services:
       postgres:
         image: postgis/postgis:16-3.4
