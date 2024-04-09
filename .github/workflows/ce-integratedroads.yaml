@@ -119,3 +119,4 @@ jobs:
         run:  |
           jobs/00_setup_db
           jobs/06_integratedroads
+          jobs/07_dump
