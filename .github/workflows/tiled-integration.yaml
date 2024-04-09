@@ -15,7 +15,7 @@ env:
 jobs:
   get-matrix: 
     runs-on: ubuntu-latest
-    container: ghcr.io/smnorris/gha_testing:main
+    container: ghcr.io/bcgov/ce_integratedroads:main
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
