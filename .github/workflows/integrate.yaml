@@ -1,4 +1,4 @@
-name: ce-integratedroads
+name: integrate
 run-name: ${{ github.actor }} Integrated roads workflow
 on:
   workflow_dispatch:

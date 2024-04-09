@@ -1,5 +1,5 @@
-name: ce-integratedroads-caller
-run-name: ${{ github.actor }} Integrated roads workflow caller
+name: ce-integratedroads
+run-name: ${{ github.actor }} Integrated roads workflow
 on:
   workflow_dispatch:
 env:
