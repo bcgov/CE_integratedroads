@@ -63,10 +63,11 @@ ogr2ogr   \
    ogp_row_land_type AS \"OGP_ROW_LAND_TYPE\",
    length_metres AS \"LENGTH_METRES\",
    geom
-  FROM integratedroads
+  FROM integratedroads"
   $outfile \
   "PG:$DATABASE_URL"
 
-ogrinfo $outfile $outlayer -so
+zip -r BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y-%m-%d').gdb.zip BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y-%m-%d').gdb
+aws s3 cp BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y-%m-%d').gdb s3://$OBJECTSTORE_BUCKET
 
 
