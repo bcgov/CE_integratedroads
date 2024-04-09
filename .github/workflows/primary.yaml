@@ -14,4 +14,4 @@ env:
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
   download:
-    uses: org/repo/.github/workflows/download.yaml@main
+    uses: ./.github/workflows/download.yaml@main
