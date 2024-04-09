@@ -17,6 +17,7 @@ ogr2ogr \
   -nlt PROMOTE_TO_MULTI \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile like '093O%' or map_tile like '093P%' or map_tile like '093I%' or map_tile like '093J%'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
   whse_basemapping.transport_line
 $PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"

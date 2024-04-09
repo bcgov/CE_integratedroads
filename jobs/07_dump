@@ -1,0 +1,73 @@
+#!/bin/bash
+set -euxo pipefail
+
+
+outfile=BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y-%m-%d').gdb
+outlayer=integrated_roads_$(date '+%Y')
+
+rm -rf $outfile
+
+ogr2ogr   \
+  -f OpenFileGDB \
+  -nlt LINESTRING \
+  -nln $outlayer \
+  -sql "SELECT
+   integratedroads_id AS \"INTEGRATEDROADS_ID\",
+   bcgw_source AS \"BCGW_SOURCE\",
+   map_tile AS \"MAP_TILE\",
+   transport_line_id AS \"TRANSPORT_LINE_ID\",
+   dra_structure AS \"DRA_STRUCTURE\",
+   dra_type AS \"DRA_TYPE\",
+   dra_surface AS \"DRA_SURFACE\",
+   dra_name_full AS \"DRA_NAME_FULL\",
+   dra_road_name_id AS \"DRA_ROAD_NAME_ID\",
+   dra_data_capture_date AS \"DRA_DATA_CAPTURE_DATE\",
+   dra_total_number_of_lanes AS \"DRA_TOTAL_NUMBER_OF_LANES\",
+   ften_map_label AS \"FTEN_MAP_LABEL\",
+   ften_forest_file_id AS \"FTEN_FOREST_FILE_ID\",
+   ften_road_section_id AS \"FTEN_ROAD_SECTION_ID\",
+   ften_file_status_code AS \"FTEN_FILE_STATUS_CODE\",
+   ften_file_type_code AS \"FTEN_FILE_TYPE_CODE\",
+   ften_file_type_description AS \"FTEN_FILE_TYPE_DESCRIPTION\",
+   ften_life_cycle_status_code AS \"FTEN_LIFE_CYCLE_STATUS_CODE\",
+   ften_award_date AS \"FTEN_AWARD_DATE\",
+   ften_retirement_date AS \"FTEN_RETIREMENT_DATE\",
+   ften_client_number AS \"FTEN_CLIENT_NUMBER\",
+   ften_client_name AS \"FTEN_CLIENT_NAME\",
+   results_forest_cover_id AS \"RESULTS_FOREST_COVER_ID\",
+   results_opening_id AS \"RESULTS_OPENING_ID\",
+   results_stocking_status_code AS \"RESULTS_STOCKING_STATUS_CODE\",
+   results_stocking_type_code AS \"RESULTS_STOCKING_TYPE_CODE\",
+   results_silv_polygon_number AS \"RESULTS_SILV_POLYGON_NUMBER\",
+   results_reference_year AS \"RESULTS_REFERENCE_YEAR\",
+   results_when_created AS \"RESULTS_WHEN_CREATED\",
+   results_when_updated AS \"RESULTS_WHEN_UPDATED\",
+   og_petrlm_dev_rd_pre06_pub_id AS \"OG_PETRLM_DEV_RD_PRE06_PUB_ID\",
+   petrlm_development_road_type AS \"PETRLM_DEVELOPMENT_ROAD_TYPE\",
+   application_received_date AS \"APPLICATION_RECEIVED_DATE\",
+   proponent AS \"PROPONENT\",
+   ogp_road_segment_permit_id AS \"OGP_ROAD_SEGMENT_PERMIT_ID\",
+   ogp_road_number AS \"OGP_ROAD_NUMBER\",
+   ogp_segment_number AS \"OGP_SEGMENT_NUMBER\",
+   ogp_road_type AS \"OGP_ROAD_TYPE\",
+   ogp_road_type_desc AS \"OGP_ROAD_TYPE_DESC\",
+   ogp_activity_approval_date AS \"OGP_ACTIVITY_APPROVAL_DATE\",
+   ogp_proponent AS \"OGP_PROPONENT\",
+   ogprow_og_road_area_permit_id AS \"OGPROW_OG_ROAD_AREA_PERMIT_ID\",
+   ogpermitsrow_road_number AS \"OGPERMITSROW_ROAD_NUMBER\",
+   ogp_row_road_segment AS \"OGP_ROW_ROAD_SEGMENT\",
+   ogp_row_land_stage_desc AS \"OGP_ROW_LAND_STAGE_DESC\",
+   ogp_row_land_stage_eff_date AS \"OGP_ROW_LAND_STAGE_EFF_DATE\",
+   ogp_row_construction_desc AS \"OGP_ROW_CONSTRUCTION_DESC\",
+   ogp_row_proponent AS \"OGP_ROW_PROPONENT\",
+   ogp_row_land_type AS \"OGP_ROW_LAND_TYPE\",
+   length_metres AS \"LENGTH_METRES\",
+   geom
+  FROM integratedroads
+  LIMIT 500"  \
+  $outfile \
+  "PG:$DATABASE_URL"
+
+ogrinfo $outfile $outlayer -so
+
+
