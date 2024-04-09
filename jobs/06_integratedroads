@@ -32,7 +32,7 @@ ogr2ogr \
   -overwrite \
   -where "map_tile_250 = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
-  whse_forest_tenure.ften_road_section_lines_svw
+  whse_forest_tenure.ften_road_section_lines_svw_cleaned
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_tile)"
 
