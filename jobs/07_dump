@@ -64,7 +64,6 @@ ogr2ogr   \
    length_metres AS \"LENGTH_METRES\",
    geom
   FROM integratedroads
-  LIMIT 500"  \
   $outfile \
   "PG:$DATABASE_URL"
 
