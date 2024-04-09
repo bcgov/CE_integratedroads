@@ -17,7 +17,6 @@ jobs:
   download-wfs:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
-    environment: ${{ inputs.env }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -27,7 +26,6 @@ jobs:
   download-files:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
-    environment: ${{ inputs.env }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4

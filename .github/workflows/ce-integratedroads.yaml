@@ -1,5 +1,5 @@
-name: ce-integratedroads
-run-name: ${{ github.actor }} Integrated roads workflow
+name: ce-integratedroads-caller
+run-name: ${{ github.actor }} Integrated roads workflow caller
 on:
   workflow_dispatch:
 env:
@@ -13,145 +13,9 @@ env:
   AWS_EC2_METADATA_DISABLED: true
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
-  download-wfs:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: WFS data - download/tile/dump
-        run:  |
-          jobs/01_download_wfs
-  download-files:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: File data - download/tile/dump
-        run:  |
-          jobs/02_download_files
-  preprocess-ften:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: download-wfs
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Preprocess
-        run:  |
-          jobs/00_setup_db
-          jobs/03_preprocess_ften
-  preprocess-results:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: download-wfs
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Preprocess
-        run:  |
-          jobs/00_setup_db
-          jobs/04_preprocess_results
-  preprocess-og-permits-row:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: download-wfs
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Preprocess
-        run:  |
-          jobs/00_setup_db
-          jobs/05_preprocess_og_permits_row
-  get-matrix:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - id: install-jq
-      run: apt-get update && apt-get -qq install -y --no-install-recommends jq
-    - id: set-matrix
-      run: |
-        DATA=$(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties | {map_tile: .MAP_TILE}' | tr '\n' ',')
-        echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
-  integratedroads:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: [preprocess-og-permits-row, preprocess-results, preprocess-ften, download-files, get-matrix]
-    strategy:
-      matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: integrate
-        run:  |
-          jobs/00_setup_db
-          jobs/06_integratedroads ${{ matrix.MAP_TILE }}
-  dump:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: integratedroads
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: integrate
-        run:  |
-          jobs/00_setup_db
-          jobs/07_dump
+  download:
+    uses: ./.github/workflows/download.yaml
+  preprocess:
+    uses: ./.github/workflows/preprocess.yaml
+  integrate:
+    uses: ./.github/workflows/integrate.yaml

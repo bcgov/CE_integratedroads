@@ -1,0 +1,73 @@
+name: ce-integratedroads
+run-name: ${{ github.actor }} Integrated roads workflow
+on:
+  workflow_dispatch:
+env:
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+  AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
+  AWS_S3_ENDPOINT: nrs.objectstore.gov.bc.ca
+  AWS_VIRTUAL_HOSTING: FALSE
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OBJECTSTORE_BUCKET: ${{ secrets.OBJECTSTORE_BUCKET }}
+  AWS_EC2_METADATA_DISABLED: true
+  CPL_VSISTDIN_BUFFER_LIMIT: -1
+jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - id: install-jq
+      run: apt-get update && apt-get -qq install -y --no-install-recommends jq
+    - id: set-matrix
+      run: |
+        DATA=$(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties | {map_tile: .MAP_TILE}' | tr '\n' ',')
+        echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
+  integratedroads:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    needs: get-matrix
+    strategy:
+      matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: integrate
+        run:  |
+          jobs/00_setup_db
+          jobs/06_integratedroads ${{ matrix.MAP_TILE }}
+  dump:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    needs: integratedroads
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: integrate
+        run:  |
+          jobs/00_setup_db
+          jobs/07_dump
