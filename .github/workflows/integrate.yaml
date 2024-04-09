@@ -2,6 +2,7 @@ name: integrate
 run-name: ${{ github.actor }} Integrated roads workflow
 on:
   workflow_dispatch:
+  workflow_call:
 env:
   DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
   AWS_ENDPOINT_URL: https://nrs.objectstore.gov.bc.ca
