@@ -57,7 +57,7 @@ Clone the repository, navigate to the project folder:
         git clone https://github.com/bcgov/CE_integratedroads.git
         cd CE_integratedroads
 
-If you do not have above noted requirements installed on your system, using Docker is recommended.
+If you do not have above noted requirements installed on your system (via apt / conda / brew etc), using Docker is recommended.
 
 ### Docker
 
@@ -96,11 +96,6 @@ These diagrams illustrate a problematic sample area, showing three similar input
 
 ### resulting output
 ![inputs](img/roadintegrator_output.png)
-
-
-## Output summary
-
-[Summary of length by data source](summary.csv)
 
 
 ## Alternative approaches
