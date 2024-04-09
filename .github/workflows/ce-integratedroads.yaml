@@ -19,3 +19,5 @@ jobs:
     uses: ./.github/workflows/preprocess.yaml
   integrate:
     uses: ./.github/workflows/integrate.yaml
+  dump:
+    uses: ./.github/workflows/dump.yaml

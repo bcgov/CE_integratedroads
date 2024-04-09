@@ -108,3 +108,16 @@ Road network conflation is a common task, many additional approaches and tools a
 - [Tiled similarity scoring](https://medium.com/strava-engineering/activity-grouping-the-heart-of-a-social-network-for-athletes-865751f7dca)
 - [Hootenanny - a conflation tool](https://github.com/ngageoint/hootenanny)
 - [Graph based merging](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0398182)
+
+## Why use Parquet files? 
+
+To enable efficient processing of chunks of data in a Github Actions workflow. 
+Workflow jobs create ephemeral postgis databases and write analysis outputs to .parquet files, to be picked up by subsequent jobs.
+Other formats would also work, but GeoParquet is the ideal tool for the job.
+
+Background:
+
+- [CloudNativeGeo - backgrounder](https://guide.cloudnativegeo.org/geoparquet/)
+- [GDAL - Parquet driver](https://gdal.org/drivers/vector/parquet.html#vector-parquet)
+- [Radiant Earth - geo partitioning](https://medium.com/radiant-earth-insights/the-admin-partitioned-geoparquet-distribution-59f0ca1c6d96)
+- [Crunchy Data - Parquet FDW](https://www.crunchydata.com/blog/parquet-and-postgres-in-the-data-lake)

@@ -1,5 +1,5 @@
-name: integrate
-run-name: ${{ github.actor }} Integrated roads workflow
+name: dump
+run-name: ${{ github.actor }} Dump data to .gdb
 on:
   workflow_dispatch:
   workflow_call:
@@ -14,24 +14,10 @@ env:
   AWS_EC2_METADATA_DISABLED: true
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
-  get-matrix:
+  dump:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - id: install-jq
-      run: apt-get update && apt-get -qq install -y --no-install-recommends jq
-    - id: set-matrix
-      run: |
-        DATA=$(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties | {map_tile: .MAP_TILE}' | tr '\n' ',')
-        echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
-  integratedroads:
-    runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: get-matrix
-    strategy:
-      matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
+    needs: integratedroads
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -49,4 +35,4 @@ jobs:
       - name: integrate
         run:  |
           jobs/00_setup_db
-          jobs/06_integratedroads ${{ matrix.MAP_TILE }}
+          jobs/07_dump
