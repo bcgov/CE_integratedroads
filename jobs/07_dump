@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euxo pipefail
 
+# get output parquet files
+mkdir -p integratedroads
+aws s3 cp s3://$OBJECTSTORE_BUCKET integratedroads --recursive --exclude "*" --include "integratedroads_*.parquet"
 
 outfile=BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y-%m-%d').gdb
 outlayer=integrated_roads_$(date '+%Y')
@@ -66,7 +69,7 @@ ogr2ogr   \
    geom
   FROM integratedroads" \
   $outfile \
-  "PG:$DATABASE_URL"
+  integratedroads
 
 zip -r $outfile.zip $outfile
 aws s3 cp $outfile.zip s3://$OBJECTSTORE_BUCKET
