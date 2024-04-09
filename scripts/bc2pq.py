@@ -119,14 +119,14 @@ def process(
             log.info(f"Intersecting {dataset} with {tile_dataset}")
             tiles = geopandas.read_parquet(tile_dataset)
             out_df = df.overlay(tiles, how="intersection")
+            # presume that we have a map_tile column to work with
+            out_df["map_tile_250"] = out_df["map_tile"].str[:4]
+            out_df = out_df.sort_values("map_tile_250")
         else:
             out_df = df
 
         # dump to file
         log.info(f"Writing data to {out_file}")
-        # use df.to_parquet(s3://bucket/object.parquet because
-        # df.to_file(/vsis3/bucket/object.parquet) uses fiona, and fiona can be bundled
-        # with older gdal without parquet support
         out_df.to_parquet(out_file)
     else:
         log.info("No data returned, parquet file not created")

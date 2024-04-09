@@ -33,6 +33,9 @@ def intersect(source_dataset, tile_dataset, out_file, verbose, quiet):
     tiles = geopandas.read_parquet(tile_dataset)
     tiled_data = source.overlay(tiles, how="intersection")
     click.echo(f"Writing overlay to {out_file}")
+    # add 250k tile column and sort by it
+    tiled_data["map_tile_250"] = tiled_data["map_tile"].str[:4]
+    tiled_data = tiled_data.sort_values("map_tile_250")
     tiled_data.to_parquet(out_file)
 
 

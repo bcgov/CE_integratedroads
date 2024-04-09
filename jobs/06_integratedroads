@@ -17,6 +17,7 @@ ogr2ogr \
   -nlt PROMOTE_TO_MULTI \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
   whse_basemapping.transport_line
 $PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"
@@ -29,6 +30,7 @@ ogr2ogr \
   -nln whse_forest_tenure.ften_road_section_lines_svw \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   whse_forest_tenure.ften_road_section_lines_svw
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
@@ -64,6 +66,7 @@ ogr2ogr \
   -nln results \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/results.parquet \
   results
 
@@ -74,6 +77,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -nlt PROMOTE_TO_MULTI \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
 $PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (forest_cover_id)"
@@ -86,6 +90,7 @@ ogr2ogr \
   -nln whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
   whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
 $PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (og_petrlm_dev_rd_pre06_pub_id)"
@@ -97,6 +102,7 @@ ogr2ogr \
   -nln whse_mineral_tenure.og_road_segment_permit_sp \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
   whse_mineral_tenure.og_road_segment_permit_sp
 $PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (og_road_segment_permit_id)"
@@ -108,6 +114,7 @@ ogr2ogr \
   -nln og_permits_row \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/og_permits_row.parquet \
   og_permits_row
 
@@ -118,6 +125,7 @@ ogr2ogr \
   -nln whse_mineral_tenure.og_road_area_permit_sp \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 $PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
@@ -131,6 +139,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -nlt PROMOTE_TO_MULTI \
   -overwrite \
+  -where "map_tile = '$1'" \
   /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
   cariboo_consolidated_roads
 #$PSQL -c "create unique index on cariboo_consolidated_roads (ccr_id, map_tile)"
