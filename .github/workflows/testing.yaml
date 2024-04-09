@@ -1,5 +1,5 @@
-name: ce-integratedroads-tiled
-run-name: ${{ github.actor }} Integrated roads workflow
+name: testing
+run-name: ${{ github.actor }} Testing integrated roads workflow
 on:
   workflow_dispatch:
 env:
@@ -13,6 +13,27 @@ env:
   AWS_EC2_METADATA_DISABLED: true
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
+  preprocess-ften:
+    runs-on: ubuntu-latest
+    container: ghcr.io/bcgov/ce_integratedroads:main
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Preprocess
+        run:  |
+          jobs/00_setup_db
+          jobs/03_preprocess_ften
   get-matrix: 
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
@@ -28,7 +49,7 @@ jobs:
   integratedroads:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
-    needs: get-matrix
+    needs: [preprocess-ften, get-matrix]
     strategy:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
