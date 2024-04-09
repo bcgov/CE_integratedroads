@@ -41,4 +41,4 @@ ogr2ogr \
   -f Parquet \
   /vsis3/$OBJECTSTORE_BUCKET/results.parquet \
   PG:$DATABASE_URL \
-  -sql "select * from results"
+  -sql "select *, substring(map_tile for 4) as map_tile_250 from results order by substring(map_tile for 4)"

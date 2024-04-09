@@ -40,4 +40,4 @@ ogr2ogr \
   -f Parquet \
   /vsis3/$OBJECTSTORE_BUCKET/og_permits_row.parquet \
   PG:$DATABASE_URL \
-  -sql "select * from og_permits_row"
+  -sql "select *, substring(map_tile for 4) as map_tile_250 from og_permits_row order by substring(map_tile for 4)"

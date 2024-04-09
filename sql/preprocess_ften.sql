@@ -18,6 +18,7 @@ WITH src AS (
       client_name,
       map_label,
       map_tile,
+      map_tile_250,
       (ST_Dump(geom)).geom as geom
     FROM whse_forest_tenure.ften_road_section_lines_svw r
     WHERE map_tile = :'tile'
@@ -142,6 +143,7 @@ INSERT INTO ften_cleaned (
   client_name,
   map_label,
   map_tile,
+  map_tile_250,
   geom
 )
 SELECT
@@ -157,6 +159,7 @@ SELECT
   s.client_name,
   n.map_label,
   n.map_tile,
+  s.map_tile_250,
   n.geom
 FROM noded_attrib n
 inner join src s on n.map_label = s.map_label;

@@ -52,4 +52,4 @@ ogr2ogr \
   -f Parquet \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   PG:$DATABASE_URL \
-  -sql "select * from ften_cleaned"
+  -sql "select *, substring(map_tile for 4) as map_tile_250 from ften_cleaned order by substring(map_tile for 4) from ften_cleaned order by map_tile"
