@@ -21,10 +21,10 @@ clean:
 	docker-compose down
 
 
-.make/00_setup_db: jobs/00_setup_db
+.make/01_download_wfs: jobs/01_download_wfs
 	$< && touch $@
 
-.make/01_download_wfs: jobs/01_download_wfs .make/00_setup_db
+.make/00_setup_db: jobs/00_setup_db .make/01_download_wfs
 	$< && touch $@
 
 .make/02_download_files: jobs/02_download_files .make/00_setup_db
