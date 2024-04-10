@@ -13,6 +13,11 @@ env:
   AWS_EC2_METADATA_DISABLED: true
   CPL_VSISTDIN_BUFFER_LIMIT: -1
 jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: start
+        run:  echo 'running integratedroads'
   download:
     uses: ./.github/workflows/download.yaml
   preprocess:
