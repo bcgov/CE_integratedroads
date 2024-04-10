@@ -1,22 +1,43 @@
 -- output table
+
+DROP TABLE IF EXISTS ften_distinct CASCADE;
+CREATE TABLE ften_distinct AS
+SELECT DISTINCT
+  map_label,
+  forest_file_id,
+  road_section_id,
+  file_status_code,
+  file_type_code,
+  file_type_description,
+  life_cycle_status_code,
+  award_date,
+  retirement_date,
+  client_number,
+  client_name
+FROM whse_forest_tenure.ften_road_section_lines_svw
+ORDER BY map_label;
+CREATE INDEX ON ften_distinct (map_label);
+
+DROP TABLE IF EXISTS road_attr_src_list CASCADE;
+CREATE TABLE road_attr_src_list AS
+SELECT DISTINCT ON (integratedroads_id)
+  integratedroads_id,
+  CASE WHEN s.transport_line_id IS NOT NULL THEN 1 ELSE NULL END as s1,
+  CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 2 ELSE NULL END as s2,
+  CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 3 ELSE NULL END as s3,
+  CASE WHEN s.forest_cover_id IS NOT NULL THEN 4 ELSE NULL END as s4,
+  CASE WHEN s.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 5 ELSE NULL END as s5,
+  CASE WHEN s.og_road_segment_permit_id IS NOT NULL THEN 6 ELSE NULL END as s6,
+  CASE WHEN s.og_road_area_permit_id IS NOT NULL THEN 7 ELSE NULL END as s7
+FROM integratedroads_2 s
+LEFT OUTER JOIN ften_distinct ften ON s.map_label = ften.map_label
+ORDER BY s.integratedroads_id, ften.map_label;
+CREATE INDEX ON road_attr_src_list (integratedroads_id);
+
+
 DROP VIEW IF EXISTS integratedroads;
 
 CREATE VIEW integratedroads as
-
-WITH road_attr_src_list as (
-  SELECT
-    integratedroads_id,
-    CASE WHEN s.transport_line_id IS NOT NULL THEN 1 ELSE NULL END as s1,
-    CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 2 ELSE NULL END as s2,
-    CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 3 ELSE NULL END as s3,
-    CASE WHEN s.forest_cover_id IS NOT NULL THEN 4 ELSE NULL END as s4,
-    CASE WHEN s.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 5 ELSE NULL END as s5,
-    CASE WHEN s.og_road_segment_permit_id IS NOT NULL THEN 6 ELSE NULL END as s6,
-    CASE WHEN s.og_road_area_permit_id IS NOT NULL THEN 7 ELSE NULL END as s7
-  FROM integratedroads_2 s
-  LEFT OUTER JOIN whse_forest_tenure.ften_road_section_lines_svw ften
-    ON s.map_label = ften.map_label
-)
 
 SELECT distinct on (s.integratedroads_id)
   i.integratedroads_id                      AS INTEGRATEDROADS_ID,
@@ -99,7 +120,7 @@ LEFT OUTER JOIN whse_basemapping.transport_line_type_code dra_type
   ON dra.transport_line_type_code = dra_type.transport_line_type_code
 LEFT OUTER JOIN whse_basemapping.transport_line_surface_code dra_surf
   ON dra.transport_line_surface_code = dra_surf.transport_line_surface_code
-LEFT OUTER JOIN whse_forest_tenure.ften_road_section_lines_svw ften
+LEFT OUTER JOIN ften_distinct ften
   ON s.map_label = ften.map_label
 LEFT OUTER JOIN whse_forest_vegetation.rslt_forest_cover_inv_svw results
   ON s.forest_cover_id = results.forest_cover_id
