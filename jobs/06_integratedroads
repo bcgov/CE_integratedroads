@@ -282,6 +282,18 @@ $PSQL -tXA -c "SELECT DISTINCT map_tile
                ORDER BY map_tile" \
   | parallel --tag $PSQL -f sql/load_sources.sql -v tile={1}
 
+# with spatial processing complete, save disk by droping geometries from source tables
+$PSQL -c "alter table whse_basemapping.transport_line drop column geom"
+$PSQL -c "drop view ften_active; drop view ften_retired"
+$PSQL -c "alter table whse_forest_tenure.ften_road_section_lines_svw drop column geom"
+$PSQL -c "alter table results drop column geom"
+$PSQL -c "alter table whse_forest_vegetation.rslt_forest_cover_inv_svw drop column geom"
+$PSQL -c "alter table whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp drop column geom"
+$PSQL -c "alter table whse_mineral_tenure.og_road_segment_permit_sp drop column geom"
+$PSQL -c "alter table whse_mineral_tenure.og_road_area_permit_sp drop column geom"
+$PSQL -c "alter table og_permits_row drop column geom"
+$PSQL -c "VACUUM ANALYZE"
+
 
 $PSQL -f sql/integratedroads_2.sql  # note all sources associated with an output geom
 $PSQL -f sql/integratedroads.sql    # create output table

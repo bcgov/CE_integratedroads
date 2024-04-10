@@ -1,7 +1,7 @@
 -- output table
-DROP TABLE IF EXISTS integratedroads;
+DROP VIEW IF EXISTS integratedroads;
 
-CREATE TABLE integratedroads as
+CREATE VIEW integratedroads as
 
 WITH road_attr_src_list as (
   SELECT
@@ -86,7 +86,7 @@ SELECT distinct on (s.integratedroads_id)
   og_permits_row.construction_desc          AS OGP_ROW_CONSTRUCTION_DESC,
   og_permits_row.proponent                  AS OGP_ROW_PROPONENT,
   og_permits_row.land_type                  AS OGP_ROW_LAND_TYPE,
-  st_length(i.geom)                AS LENGTH_METRES,
+  st_length(i.geom)                         AS LENGTH_METRES,
   i.geom
 FROM integratedroads_2 s
 INNER JOIN integratedroads_1 i on s.integratedroads_id = i.integratedroads_id
@@ -110,6 +110,3 @@ LEFT OUTER JOIN whse_mineral_tenure.og_road_segment_permit_sp og_permits
 LEFT OUTER JOIN whse_mineral_tenure.og_road_area_permit_sp og_permits_row
   ON s.og_road_area_permit_id = og_permits_row.og_road_area_permit_id
 order by s.integratedroads_id, s.map_tile;
-
-CREATE UNIQUE INDEX ON integratedroads (integratedroads_id);
-CREATE INDEX ON integratedroads USING GIST (geom);
