@@ -39,11 +39,12 @@ clean:
 .make/05_preprocess_og_permits_row: jobs/05_preprocess_og_permits_row .make/00_setup_db
 	$< && touch $@
 
-.make/06_integratedroads: jobs/06_integratedroads .make/05_preprocess_og_permits_row .make/04_preprocess_results .make/03_preprocess_ften .make/02_download_files
-	for tile in $(shell bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID --query "MAP_TILE = '092B'" | jq -c '.properties.MAP_TILE' | tr '\n' ' ') ; do  \
-		set -e ; jobs/06_integratedroads $$tile ; \
+.make/06_integrate: jobs/06_integrate .make/05_preprocess_og_permits_row .make/04_preprocess_results .make/03_preprocess_ften .make/02_download_files
+	#for tile in $(shell bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID --query "MAP_TILE = '092B'" | jq -c '.properties.MAP_TILE' | tr '\n' ' ') ; do -- test tile
+	for tile in $(shell bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties.MAP_TILE' | tr '\n' ' ') ; do  \
+		set -e ; $< $$tile ; \
 	done
 	touch $@
 
-.make/07_dump: jobs/07_dump .make/06_integratedroads
+.make/07_dump: jobs/07_dump .make/06_integrate
 	$< && touch $@

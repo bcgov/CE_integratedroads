@@ -1,5 +1,5 @@
 name: integrate
-run-name: ${{ github.actor }} Integrated roads workflow
+run-name: ${{ github.actor }} Integrate roads workflow
 on:
   workflow_dispatch:
   workflow_call:
@@ -49,4 +49,4 @@ jobs:
       - name: integrate
         run:  |
           jobs/00_setup_db
-          jobs/06_integratedroads ${{ matrix.MAP_TILE }}
+          jobs/06_integrate ${{ matrix.MAP_TILE }}
