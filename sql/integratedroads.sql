@@ -2,6 +2,22 @@
 DROP TABLE IF EXISTS integratedroads;
 
 CREATE TABLE integratedroads as
+
+WITH road_attr_src_list as (
+  SELECT
+    integratedroads_id,
+    CASE WHEN s.transport_line_id IS NOT NULL THEN 1 ELSE NULL END as s1,
+    CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 2 ELSE NULL END as s2,
+    CASE WHEN s.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 3 ELSE NULL END as s3,
+    CASE WHEN s.forest_cover_id IS NOT NULL THEN 4 ELSE NULL END as s4,
+    CASE WHEN s.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 5 ELSE NULL END as s5,
+    CASE WHEN s.og_road_segment_permit_id IS NOT NULL THEN 6 ELSE NULL END as s6,
+    CASE WHEN s.og_road_area_permit_id IS NOT NULL THEN 7 ELSE NULL END as s7
+  FROM integratedroads_2 s
+  LEFT OUTER JOIN whse_forest_tenure.ften_road_section_lines_svw ften
+    ON s.map_label = ften.map_label
+)
+
 SELECT distinct on (s.integratedroads_id)
   i.integratedroads_id                      AS INTEGRATEDROADS_ID,
   -- source used for the linework (taken from the _1 table)
@@ -13,6 +29,16 @@ SELECT distinct on (s.integratedroads_id)
     WHEN i.results_id IS NOT NULL THEN 'WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW'
     WHEN i.og_permits_row_id IS NOT NULL THEN 'WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP'
   END AS bcgw_source,
+  CASE
+    WHEN i.transport_line_id IS NOT NULL THEN 1
+    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 2
+    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 3
+    WHEN i.results_id IS NOT NULL THEN 4
+    WHEN i.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 5
+    WHEN i.og_road_segment_permit_id IS NOT NULL THEN 6
+    WHEN i.og_permits_row_id IS NOT NULL THEN 7
+  END AS cef_road_priority_rank,
+  array_to_string(array_remove(array[rasl.s1, rasl.s2, rasl.s3, rasl.s4, rasl.s5, rasl.s6, rasl.s7], NULL),';') as cef_road_attr_src_list,
   i.map_tile                                AS MAP_TILE,
   s.transport_line_id                       AS TRANSPORT_LINE_ID,
   dra_struct.description                    AS DRA_STRUCTURE,
@@ -64,6 +90,7 @@ SELECT distinct on (s.integratedroads_id)
   i.geom
 FROM integratedroads_2 s
 INNER JOIN integratedroads_1 i on s.integratedroads_id = i.integratedroads_id
+INNER JOIN road_attr_src_list rasl on s.integratedroads_id = rasl.integratedroads_id
 LEFT OUTER JOIN whse_basemapping.transport_line dra
   ON s.transport_line_id = dra.transport_line_id
 LEFT OUTER JOIN whse_basemapping.transport_line_structure_code dra_struct
