@@ -24,19 +24,19 @@ clean:
 .make/01_download_wfs: jobs/01_download_wfs
 	$< && touch $@
 
+.make/02_download_files: jobs/02_download_files
+	$< && touch $@
+
 .make/00_setup_db: jobs/00_setup_db .make/01_download_wfs
 	$< && touch $@
 
-.make/02_download_files: jobs/02_download_files .make/00_setup_db
+.make/03_preprocess_ften: jobs/03_preprocess_ften .make/00_setup_db
 	$< && touch $@
 
-.make/03_preprocess_ften: jobs/03_preprocess_ften .make/01_download_wfs
+.make/04_preprocess_results: jobs/04_preprocess_results .make/00_setup_db
 	$< && touch $@
 
-.make/04_preprocess_results: jobs/04_preprocess_results .make/01_download_wfs
-	$< && touch $@
-
-.make/05_preprocess_og_permits_row: jobs/05_preprocess_og_permits_row .make/01_download_wfs
+.make/05_preprocess_og_permits_row: jobs/05_preprocess_og_permits_row .make/00_setup_db
 	$< && touch $@
 
 .make/06_integratedroads: jobs/06_integratedroads .make/05_preprocess_og_permits_row .make/04_preprocess_results .make/03_preprocess_ften .make/02_download_files
