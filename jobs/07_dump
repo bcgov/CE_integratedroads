@@ -18,6 +18,8 @@ ogr2ogr   \
   -sql "SELECT
    integratedroads_id AS \"INTEGRATEDROADS_ID\",
    bcgw_source AS \"BCGW_SOURCE\",
+   cef_road_priority_rank AS \"CEF_ROAD_PRIORITY_RANK\",
+   cef_road_attr_src_list AS \"CEF_ROAD_ATTR_SRC_LIST\",
    map_tile AS \"MAP_TILE\",
    transport_line_id AS \"TRANSPORT_LINE_ID\",
    dra_structure AS \"DRA_STRUCTURE\",
