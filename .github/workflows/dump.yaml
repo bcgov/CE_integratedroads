@@ -16,6 +16,5 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: dump
-        run:  |
-          jobs/00_setup_db
+        run:
           jobs/07_dump
