@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: integrate
+      - name: dump
         run:  |
           jobs/00_setup_db
           jobs/07_dump

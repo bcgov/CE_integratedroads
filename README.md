@@ -112,9 +112,9 @@ Road network conflation is a common task, many additional approaches and tools a
 
 ## Why use Parquet files? 
 
-To enable efficient processing of chunks of data in a Github Actions workflow. 
-Workflow jobs create ephemeral postgis databases and write analysis outputs to .parquet files, to be picked up by subsequent jobs.
-Other formats would also work, but GeoParquet is the ideal tool for the job.
+To enable efficient processing of chunks of data in disk limited Github Actions workflows.  
+Jobs within the workflow load Parquet files from object storage to ephemeral PostGIS databases for processing, then write analysis outputs to new object store Parquet files - which can then be picked up by subsequent jobs. 
+Other formats could be used to cache the chunked data, but Parquet is a good tool for the job: speedy, space efficient, and chunks do not have to be merged once the processing is complete (a folder of Parquet files can be read as a single dataset). This workflow would be even more effective for file-based processing, but not all required spatial functions are available yet in tools like geopandas and duckdb.
 
 Background:
 
