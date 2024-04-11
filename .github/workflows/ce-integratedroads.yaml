@@ -1,16 +1,24 @@
 name: ce-integratedroads
-run-name: ${{ github.actor }} Complete CE integrated roads workflow
+run-name: ${{ github.actor }} Full integrated roads workflow
 on:
   workflow_dispatch:
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  OBJECTSTORE_BUCKET: ${{ secrets.OBJECTSTORE_BUCKET }}
 jobs:
   download:
     uses: ./.github/workflows/download.yaml
+    secrets: inherit
   preprocess:
     uses: ./.github/workflows/preprocess.yaml
+    secrets: inherit
     needs: download
   integrate:
     uses: ./.github/workflows/integrate.yaml
+    secrets: inherit
     needs: preprocess
   dump:
     uses: ./.github/workflows/dump.yaml
+    secrets: inherit
     needs: integrate
