@@ -17,11 +17,18 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 
 ## Method
 
-First, sources are preprocessed:
+All processing is done via a [manually triggered Github Actions workflow](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml)
+
+First, source datasets are downloaded from DataBC's WFS server (and from file where possible), cut by BC 1:20k tile, and cached as Parquet in an S3 compatible object storage. This enables fast processing of the resulting chunked data via parallel workers.
+
+Data are then preprocessed:
+
 - centerlines of polygon road sources are approximated
 - FTEN roads are cleaned slightly, snapping endpoints within 7m to other same-source roads
 
-Next, all roads are loaded to the output table in order of decreasing priority. Portions of lower priority roads within 7m of a higher priority road are deleted. Where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road.
+Roads are then loaded to the output table in order of decreasing priority. Portions of lower priority roads within 7m of a higher priority road are deleted. Where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road. This is done independently for each 1:250k tile and results are written to Parquet on object storage. 
+
+When all tiles are complete, the resulting collection of Parquet files is translated into the required File Geodatabase output. 
 
 
 ## Limitations and Caveats
@@ -41,51 +48,6 @@ Additional notes:
 - because processing is tiled by BCGS 20k tile, any portion of road falling outside of these tiles will not be included (tile edges do not exactly match the surveyed BC border)
 - attributes from all sources associated with a given road feature are populated when available - attributes for the source feature will be correct but because additional overlapping roads will not always be matched correctly, use additional attribute values with caution (the matching is based only on greatest overlap)
 
-
-## Requirements
-
-- bash/make/zip/unzip/parallel (see Dockerfile)
-- PostgreSQL >= 14
-- PostGIS >= 3.3
-- GDAL >= 3.8
-- Python >= 3.9
-- [bcdata](https://github.com/smnorris/bcdata) >= 0.10.2
-
-## Setup
-
-Clone the repository, navigate to the project folder:
-
-        git clone https://github.com/bcgov/CE_integratedroads.git
-        cd CE_integratedroads
-
-If you do not have above noted requirements installed on your system (via apt / conda / brew etc), using Docker is recommended.
-
-### Docker
-
-Build and start the containers:
-
-        docker-compose build
-        docker-compose up -d
-
-As long as you do not remove the container `roadintegrator-db`, it will retain all the data you put in it.
-If you have shut down Docker or the container, start it up again with this command:
-
-        docker-compose up -d
-
-## Usage
-
-Scripts are called via make. To run the full job:
-
-        make
-
-If using Docker:
-
-        docker-compose run --rm app make
-
-Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml`:
-
-        psql postgresql://postgres:postgres@localhost:8001/postgres
-
 ## Duplications
 
 As mentioned above, this analysis is very much a rough approximation. It works well in areas where roads are not duplicated between sources or where source road networks are near-coincident.
@@ -99,16 +61,47 @@ These diagrams illustrate a problematic sample area, showing three similar input
 ![inputs](img/roadintegrator_output.png)
 
 
-## Alternative approaches
+## Development and testing 
 
-Road network conflation is a common task, many additional approaches and tools are available. This list provides a starting point for additional reading:
+### Requirements 
 
-- RoadMatcher JUMP/OpenJump plugin [source](https://github.com/ssinger/roadmatcher), [wiki](http://wiki.openstreetmap.org/wiki/RoadMatcher)
-- [PostGIS topology](http://blog.mathieu-leplatre.info/use-postgis-topologies-to-clean-up-road-networks.html)
-- [Average Path Length Similarity](https://medium.com/the-downlinq/spacenet-road-detection-and-routing-challenge-part-ii-apls-implementation-92acd86f4094)
-- [Tiled similarity scoring](https://medium.com/strava-engineering/activity-grouping-the-heart-of-a-social-network-for-athletes-865751f7dca)
-- [Hootenanny - a conflation tool](https://github.com/ngageoint/hootenanny)
-- [Graph based merging](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0398182)
+- bash/make/zip/unzip/parallel (see Dockerfile)
+- PostgreSQL >= 14
+- PostGIS >= 3.3
+- GDAL >= 3.8
+- Python >= 3.9
+- [bcdata](https://github.com/smnorris/bcdata) >= 0.10.2
+
+### Setup
+
+Clone the repository, navigate to the project folder:
+
+        git clone https://github.com/bcgov/CE_integratedroads.git
+        cd CE_integratedroads
+
+If you do not have above noted requirements installed on your system (via apt / conda / brew etc), consider using Docker. To build and start the containers:
+
+        docker-compose build
+        docker-compose up -d
+
+As long as you do not remove the container `roadintegrator-db`, it will retain all the data you put in it. If you have shut down Docker or the container, start it up again with this command:
+
+        docker-compose up -d
+
+### Usage
+
+Call scripts in the `/jobs` folder in order as needed. Or run the full job using the `Makefile`:
+
+        make
+
+or with docker:
+
+        docker-compose run --rm app make
+
+Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml`:
+
+        psql postgresql://postgres:postgres@localhost:8001/postgres
+
 
 ## Why use Parquet files? 
 
@@ -122,3 +115,14 @@ Background:
 - [GDAL - Parquet driver](https://gdal.org/drivers/vector/parquet.html#vector-parquet)
 - [Radiant Earth - geo partitioning](https://medium.com/radiant-earth-insights/the-admin-partitioned-geoparquet-distribution-59f0ca1c6d96)
 - [Crunchy Data - Parquet FDW](https://www.crunchydata.com/blog/parquet-and-postgres-in-the-data-lake)
+
+## Alternative approaches
+
+Road network conflation is a common task, many additional approaches and tools are available. This list provides a starting point for additional reading:
+
+- RoadMatcher JUMP/OpenJump plugin [source](https://github.com/ssinger/roadmatcher), [wiki](http://wiki.openstreetmap.org/wiki/RoadMatcher)
+- [PostGIS topology](http://blog.mathieu-leplatre.info/use-postgis-topologies-to-clean-up-road-networks.html)
+- [Average Path Length Similarity](https://medium.com/the-downlinq/spacenet-road-detection-and-routing-challenge-part-ii-apls-implementation-92acd86f4094)
+- [Tiled similarity scoring](https://medium.com/strava-engineering/activity-grouping-the-heart-of-a-social-network-for-athletes-865751f7dca)
+- [Hootenanny - a conflation tool](https://github.com/ngageoint/hootenanny)
+- [Graph based merging](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0398182)
