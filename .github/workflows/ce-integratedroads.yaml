@@ -9,12 +9,16 @@ env:
 jobs:
   download:
     uses: ./.github/workflows/download.yaml
+    secrets: inherit
   preprocess:
     uses: ./.github/workflows/preprocess.yaml
+    secrets: inherit
     needs: download
   integrate:
     uses: ./.github/workflows/integrate.yaml
+    secrets: inherit
     needs: preprocess
   dump:
     uses: ./.github/workflows/dump.yaml
+    secrets: inherit
     needs: integrate
