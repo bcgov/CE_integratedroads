@@ -131,20 +131,6 @@ ogr2ogr \
 $PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
 $PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (map_tile)"
 
-# cariboo roads
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln cariboo_consolidated_roads \
-  -lco GEOMETRY_NAME=geom \
-  -nlt PROMOTE_TO_MULTI \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
-  cariboo_consolidated_roads
-#$PSQL -c "create unique index on cariboo_consolidated_roads (ccr_id, map_tile)"
-# ccr_id is not unique, use ogc_fid for cariboo roads
-$PSQL -c "create index on cariboo_consolidated_roads (map_tile)"
 
 # dra code tables
 $PSQL -c "DROP TABLE IF EXISTS whse_basemapping.transport_line_structure_code;
