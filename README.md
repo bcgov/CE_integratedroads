@@ -7,13 +7,14 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 
 |Priority | Name                        | Table                        | Query                        |
 |---------|-----------------------------|------------------------------|------------------------------|
-| 1 | [Digital Road Atlas (DRA)](https://catalogue.data.gov.bc.ca/dataset/digital-road-atlas-dra-master-partially-attributed-roads) | WHSE_BASEMAPPING.TRANSPORT_LINE (*from DRA ftp*) | TRANSPORT_LINE_SURFACE_CODE <> 'B' |
-| 2 | [Forest Tenure Road Section Lines, ACTIVE](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW | LIFE_CYCLE_STATUS_CODE = 'ACTIVE' |
-| 3 | [Forest Tenure Road Section Lines, RETIRED](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW | LIFE_CYCLE_STATUS_CODE = 'RETIRED' |
-| 4 | [RESULTS - Forest Cover Inventory - roads](https://catalogue.data.gov.bc.ca/dataset/results-forest-cover-inventory) | WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW | STOCKING_STATUS_CODE in ('NP', 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y' |
-| 5 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP |
-| 6 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP |
-| 7 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP |
+| 1 | Cariboo Consolidated Roads | `Cariboo_Consolidated_Roads` from [GeoBC FTP](ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Cariboo_Consolidated_Roads_20240304.zip) |  |
+| 2 | [Digital Road Atlas (DRA)](https://catalogue.data.gov.bc.ca/dataset/digital-road-atlas-dra-master-partially-attributed-roads) | `WHSE_BASEMAPPING.TRANSPORT_LINE` (*from DRA ftp*) | `TRANSPORT_LINE_SURFACE_CODE <> 'B'` |
+| 3 | [Forest Tenure Road Section Lines, ACTIVE](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'ACTIVE'` |
+| 4 | [Forest Tenure Road Section Lines, RETIRED](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'RETIRED'` |
+| 5 | [RESULTS - Forest Cover Inventory - roads](https://catalogue.data.gov.bc.ca/dataset/results-forest-cover-inventory) | `WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW` | `STOCKING_STATUS_CODE in ('NP', 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'` |
+| 6 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | `WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP` |
+| 7 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP` |
+| 8 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP` |
 
 ## Method
 
