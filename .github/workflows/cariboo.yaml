@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads:main
     environment: production
-    needs: get-matrix
     strategy:
       matrix:
         MAP_TILE: [092I,092N,092O,092P,093A,093B,093C,093F,093G,093H]
