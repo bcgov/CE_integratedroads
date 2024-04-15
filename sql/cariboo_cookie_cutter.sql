@@ -216,6 +216,8 @@ singlepart as (
 )
 
 insert into cer_cariboo (
+  cef_road_priority_rank,
+  cef_road_attr_src_list,
   dra_data_capture_date,
   dra_name_full,
   dra_structure,
@@ -231,6 +233,8 @@ insert into cer_cariboo (
   geom
 )
 select
+  1 as cef_road_priority_rank,
+  1 as cef_road_attr_src_list,
   dra_data_capture_date,
   dra_name_full,
   dra_structure,
