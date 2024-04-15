@@ -50,4 +50,3 @@ jobs:
         run:  |
           jobs/00_setup_db
           jobs/06_integrate ${{ matrix.MAP_TILE }}
-          jobs/07_cariboo ${{ matrix.MAP_TILE }}

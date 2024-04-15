@@ -216,6 +216,7 @@ singlepart as (
 )
 
 insert into cer_cariboo (
+  bcgw_source,
   cef_road_priority_rank,
   cef_road_attr_src_list,
   dra_data_capture_date,
@@ -233,6 +234,7 @@ insert into cer_cariboo (
   geom
 )
 select
+  'CARIBOO_CONSOLIDATED_ROADS' as bcgw_source,
   1 as cef_road_priority_rank,
   1 as cef_road_attr_src_list,
   dra_data_capture_date,
