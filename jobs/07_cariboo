@@ -109,6 +109,9 @@ ogr2ogr \
 # run the cookie cutter operation
 $PSQL -f sql/cariboo_cookie_cutter.sql
 
+# remove existing file
+#aws s3 rm s3://$OBJECTSTORE_BUCKET/integratedroads_$1.parquet
+
 # dump tile back to s3
 ogr2ogr \
   -f Parquet \
