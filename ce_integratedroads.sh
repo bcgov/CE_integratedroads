@@ -7,7 +7,7 @@ set -euxo pipefail
 
 jobs/01_download_wfs
 jobs/02_download_files
-jobs/00_setup_db                   # requires 01_download_wfs
+jobs/00_setup_db                   # requires data downloaded by 01_download_wfs
 jobs/03_preprocess_ften
 jobs/04_preprocess_results
 jobs/05_preprocess_og_permits_row
@@ -23,4 +23,4 @@ do
 	set -e ; jobs/07_cariboo $tile
 done
 
-jobs/07_dump 
+jobs/08_dump
