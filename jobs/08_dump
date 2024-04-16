@@ -16,9 +16,7 @@ ogr2ogr   \
   -f OpenFileGDB \
   -nlt LINESTRING \
   -nln $outlayer \
-  PG:$DATABASE_URL \
   -sql "SELECT
-   row_number() over() AS \"INTEGRATEDROADS_ID\",
    bcgw_source AS \"BCGW_SOURCE\",
    cef_road_priority_rank AS \"CEF_ROAD_PRIORITY_RANK\",
    cef_road_attr_src_list AS \"CEF_ROAD_ATTR_SRC_LIST\",
@@ -70,7 +68,7 @@ ogr2ogr   \
    ogp_row_proponent AS \"OGP_ROW_PROPONENT\",
    ogp_row_land_type AS \"OGP_ROW_LAND_TYPE\",
    ccr_transport_line_type_code AS \"CCR_TRANSPORT_LINE_TYPE_CODE\",
-   ccr_transport_line_tenure_type_code AS \"CCR_TRANSPORT_LINE_TENURE_TYPE_CODE\"
+   ccr_transport_line_tenure_type_code AS \"CCR_TRANSPORT_LINE_TENURE_TYPE_CODE\",
    ccr_deactivation_date AS \"CCR_DEACTIVATION_DATE\",
    ccr_private_flag AS \"CCR_PRIVATE_FLAG\",
    ccr_access_restricted_flag AS \"CCR_ACCESS_RESTRICTED_FLAG\",
@@ -81,7 +79,7 @@ ogr2ogr   \
    geom
   FROM integratedroads" \
   $outfile \
-
+  integratedroads
 
 zip -r $outfile.zip $outfile
 aws s3 cp $outfile.zip s3://$OBJECTSTORE_BUCKET
