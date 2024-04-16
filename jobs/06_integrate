@@ -284,12 +284,14 @@ $PSQL -c "VACUUM ANALYZE"
 $PSQL -f sql/integratedroads_2.sql  # note all sources associated with an output geom
 $PSQL -f sql/integratedroads.sql    # create output table
 
+# remove file if it already exists
+aws s3 rm s3://$OBJECTSTORE_BUCKET/integratedroads_$1.parquet
+
 # dump to file
 ogr2ogr \
   -f Parquet \
   -nlt LINESTRING \
   -nln integratedroads \
-  -overwrite \
   -sql "SELECT * FROM integratedroads" \
   /vsis3/$OBJECTSTORE_BUCKET/integratedroads_$1.parquet \
   "PG:$DATABASE_URL"
