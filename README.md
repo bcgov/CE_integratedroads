@@ -18,7 +18,7 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 
 ## Method
 
-All processing is done via a [manually triggered Github Actions workflow](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml)
+All processing is done via a [manually triggered Github Actions workflow](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml)(click on the `Run Workflow` button for the `ce-integratedroads` workflow to trigger a run).
 
 First, source datasets are downloaded from DataBC's WFS server (and from file where possible), cut by BC 1:20k tile, and cached as Parquet in an S3 compatible object storage. This enables fast processing of the resulting chunked data via parallel workers.
 
@@ -32,6 +32,7 @@ Roads are then loaded to the output table in order of decreasing priority. Porti
 When all tiles are complete, the resulting collection of Parquet files is consolidated into a single output table. 
 For areas where official QA'ed consolidated roads data are available (currently only for the Cariboo Region), the "integrated" roads are removed and replaced with the official data.
 
+Output is written as a zipped file geodatabase on NRS object storage.
 
 ## Limitations and Caveats
 
@@ -67,7 +68,7 @@ These diagrams illustrate a problematic sample area, showing three similar input
 
 ### Requirements 
 
-- bash/make/zip/unzip/parallel (see Dockerfile)
+- bash/zip/unzip/parallel (see Dockerfile)
 - PostgreSQL >= 14
 - PostGIS >= 3.3
 - GDAL >= 3.8
@@ -108,8 +109,9 @@ Note that connecting to the dockerized database from your local OS is possible v
 ## Why use Parquet files? 
 
 To enable efficient processing of chunks of data in disk limited Github Actions workflows.  
-Jobs within the workflow load Parquet files from object storage to ephemeral PostGIS databases for processing, then write analysis outputs to new object store Parquet files - which can then be picked up by subsequent jobs. 
-Other formats could be used to cache the chunked data, but Parquet is a good tool for the job: speedy, space efficient, and chunks do not have to be merged once the processing is complete (a folder of Parquet files can be read as a single dataset). This workflow would be even more effective for file-based processing, but not all required spatial functions are available yet in tools like geopandas and duckdb.
+Jobs within the workflow load Parquet files from object storage to ephemeral PostGIS databases for processing, then write analysis outputs to new Parquet files on object store - which can then be picked up by subsequent jobs. 
+Other formats could be used to cache the chunked data, but Parquet is a good tool for the job: speedy, space efficient, and chunks do not have to be merged once the processing is complete (a folder of Parquet files can be read as a single dataset). 
+This workflow could be even more effective for file-based processing, but not all required spatial functions are available in tools like geopandas and duckdb - PostGIS is required.
 
 Background:
 
