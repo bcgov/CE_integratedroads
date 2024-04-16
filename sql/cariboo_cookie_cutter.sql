@@ -231,6 +231,7 @@ insert into cer_cariboo (
   ccr_ground_truth_required,
   ccr_desktop_ex_status,
   map_tile,
+  length_metres,
   geom
 )
 select
@@ -249,6 +250,7 @@ select
   ccr_ground_truth_required,
   ccr_desktop_ex_status,
   map_tile,
+  round(st_length(geom)::numeric, 4) as length_metres,
   geom
 from singlepart
 where  st_geometrytype(geom) = 'ST_LineString';

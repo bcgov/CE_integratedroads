@@ -116,7 +116,7 @@ SELECT distinct on (s.integratedroads_id)
   null::text                                as ccr_access_restriction_type,
   null::text                                as ccr_ground_truth_required,
   null::text                                as ccr_desktop_ex_status,
-  st_length(i.geom)                         as length_metres,
+  round(st_length(i.geom)::numeric, 4)      as length_metres,
   i.geom
 FROM integratedroads_2 s
 INNER JOIN integratedroads_1 i on s.integratedroads_id = i.integratedroads_id
