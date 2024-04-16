@@ -92,13 +92,13 @@ As long as you do not remove the container `roadintegrator-db`, it will retain a
 
 ### Usage
 
-Call scripts in the `/jobs` folder in order as needed. Or run the full job using the `Makefile`:
+Call scripts in the `/jobs` folder in order as needed. Or run the full job:
 
-        make
+        ./ce_integratedroads.sh
 
 or with docker:
 
-        docker-compose run --rm app make
+        docker-compose run --rm app ce_integratedroads.sh
 
 Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml`:
 
