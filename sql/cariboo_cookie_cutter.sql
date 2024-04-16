@@ -1,7 +1,7 @@
 -------
 -- Load cariboo consolidated roads to output integrated roads table, where
---  - project tracking index indicates
---  and in the region
+--  - project tracking index indicates data is ready
+--  - data is within the cariboo region
 -------
 
 -- create output table
