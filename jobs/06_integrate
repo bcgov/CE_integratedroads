@@ -289,6 +289,7 @@ ogr2ogr \
   -f Parquet \
   -nlt LINESTRING \
   -nln integratedroads \
+  -overwrite \
   -sql "SELECT * FROM integratedroads" \
   /vsis3/$OBJECTSTORE_BUCKET/integratedroads_$1.parquet \
   "PG:$DATABASE_URL"
