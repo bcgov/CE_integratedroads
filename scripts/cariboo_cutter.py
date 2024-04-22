@@ -15,10 +15,11 @@ def configure_logging(verbosity):
 
 
 @click.command()
+@click.argument("index_file")
 @click.argument("out_file")
 @verbose_opt
 @quiet_opt
-def cariboo_cutter(out_file, verbose, quiet):
+def cariboo_cutter(index_file, out_file, verbose, quiet):
     """
     Create cariboo mask
     """
@@ -34,12 +35,12 @@ def cariboo_cutter(out_file, verbose, quiet):
         query="REGION_NAME = 'Cariboo Natural Resource Region'",
         as_gdf=True,
     ).to_crs("EPSG:3005")
-    ccr_index = geopandas.read_file("/vsizip/tmp/Project_Tracking_20240304.gdb.zip")
+    ccr_index = geopandas.read_parquet(index_file)
 
     # pull columns of interest
     tile250 = tile250[["MAP_TILE", "geometry"]]
     region = region[["REGION_NAME", "geometry"]]
-    ccr_index = ccr_index[["DeskEx_Status", "geometry"]]
+    ccr_index = ccr_index[["DeskEx_Status", ccr_index.geometry.name]]
 
     # overlay
     overlay1 = tile250.overlay(region, how="union")
