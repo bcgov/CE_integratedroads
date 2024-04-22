@@ -163,7 +163,7 @@ select
   a.ogp_row_construction_desc,
   a.ogp_row_proponent,
   a.ogp_row_land_type,
-  round(st_length(i.geom)::numeric, 4) as length_metres,
+  round(st_length(b.geom)::numeric, 4) as length_metres,
   b.geom
 from ir a
 inner join ir_cut b on a.integratedroads_id = b.integratedroads_id
