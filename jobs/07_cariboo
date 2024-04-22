@@ -11,17 +11,12 @@ PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
-  -nln cer \
+  -nln ir \
   -overwrite \
   /vsis3/$OBJECTSTORE_BUCKET/integratedroads_$1.parquet \
   integratedroads_$1
 
-# load cariboo roads within tile (and project status index)
-mkdir -p tmp
-
-curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Project_Tracking_20240304.zip \
-  -o tmp/Project_Tracking_20240304.gdb.zip
-
+# load cariboo roads within tile
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
@@ -33,19 +28,17 @@ ogr2ogr \
   -where "map_tile_250 = '$1'" \
   cariboo_consolidated_roads
 
+# load cariboo status index/region cutter
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
-  -nln ccr_index \
+  -nln cariboo_cutter \
   -lco GEOMETRY_NAME=geom \
+  -nlt PROMOTE_TO_MULTI \
   -overwrite \
-  /vsizip/tmp/Project_Tracking_20240304.gdb.zip \
-  CCR_Project_Tracking
-
-rm -rf tmp/Project_Tracking_20240304.gdb.zip
-
-# load nr region
-bcdata bc2pg whse_admin_boundaries.adm_nr_regions_spg --query "REGION_NAME = 'Cariboo Natural Resource Region'"
+  /vsis3/$OBJECTSTORE_BUCKET/cariboo_cutter.parquet \
+  -where "map_tile = '$1'" \
+  cariboo_cutter
 
 # dra code tables are required
 $PSQL -c "create schema if not exists whse_basemapping"
