@@ -50,8 +50,8 @@ aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$OBJECTSTORE_BU
 aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$OBJECTSTORE_BUCKET
 
 # Cariboo Roads
-curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Cariboo_Consolidated_Roads_20240304.zip \
-  -o tmp/Cariboo_Consolidated_Roads_20240304.gdb.zip
+#curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Cariboo_Consolidated_Roads_20240304.zip \
+#  -o tmp/Cariboo_Consolidated_Roads_20240304.gdb.zip
 ogr2ogr \
   -f Parquet \
   -unsetFid \
@@ -66,4 +66,9 @@ python scripts/intersect.py \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
   s3://$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet
 
-rm -rf tmp
+# cariboo road status
+#curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/for_CE/Project_Tracking_20240304.zip \
+#  -o tmp/Project_Tracking_20240304.gdb.zip
+
+# create the cariboo cutter
+python scripts/cariboo_cutter.py s3://$OBJECTSTORE_BUCKET/cariboo_cutter.parquet

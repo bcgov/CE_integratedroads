@@ -5,61 +5,58 @@
 -------
 
 -- create output table
-drop table if exists cer_cariboo;
-create table cer_cariboo (like cer including all);
+drop table if exists ir_cariboo;
+create table ir_cariboo (like ir including all);
 
 
--- generate the cookie cutter - completed tiles, cut to the cariboo region
-drop table if exists cutter;
-create table cutter as
-select
-  'cariboo' as desc,
-  (st_dump(geom)).geom as geom
-from (
-  select
-    case
-      when st_coveredby(a.geom, b.geom) then a.geom
-      else st_intersection(a.geom, b.geom)
-    end as geom
-  from ccr_index a
-  inner join whse_admin_boundaries.adm_nr_regions_spg b on st_intersects(a.geom, b.geom)
-  and a.deskex_status = 'Complete'
-) as f;
-create index on cutter using gist (geom);
-
--- note which ce roads intersect the cutter
-drop table if exists cer_cutter_intersection;
-create table cer_cutter_intersection as
-select distinct
-  integratedroads_id
-from cer i
-inner join cutter c on st_intersects(i.geom, c.geom);
-
--- First, load ce roads that *do not* intersect cutter
-insert into cer_cariboo
-select a.*
-from cer a
-left outer join cer_cutter_intersection b
-on a.integratedroads_id = b.integratedroads_id
-where b.integratedroads_id is null;
-
--- cut ce roads that intersect with the cutter but are not completely covered by cutter
--- note that this query is v slow, creating a definition of what is *not* in the cutter
--- and intersecting with that may be faster than running st_difference on the aggregated shape?
-drop table if exists cutter_agg;
-create table cutter_agg as
-select st_union(geom, .1) as geom
-from cutter;
-
-with to_cut as (
-select
-  a.integratedroads_id,
-  a.geom
-from cer a
-inner join cer_cutter_intersection b on a.integratedroads_id = b.integratedroads_id
+-- overlay each road source with the cutter
+-- note that the usual overlay speedup (case when st_coveredby()) fails with topology error for coveredby
+drop table if exists ir_cut;
+create table ir_cut as
+with overlay as (
+  select distinct
+    integratedroads_id,
+    b.region_name,
+    b.deskex_status,
+    st_makevalid((st_dump(st_intersection(a.geom, b.geom))).geom) as geom
+  from ir a
+  inner join cariboo_cutter b on st_intersects(a.geom, b.geom)
+),
+-- remove any point intersections
+lines as (
+  select *
+  from overlay
+  where st_geometrytype(geom) = 'ST_LineString'
 )
+-- remove really short fragments
+select * from lines
+where st_length(geom) > .0001;
 
-insert into cer_cariboo (
+
+drop table if exists ccr_cut;
+create table ccr_cut as
+with overlay as (
+  select distinct
+    a.ogc_fid,
+    b.region_name,
+    b.deskex_status,
+    st_makevalid((st_dump(st_intersection(a.geom, b.geom))).geom) as geom
+  from ccr a
+  inner join cariboo_cutter b on st_intersects(a.geom, b.geom)
+),
+-- remove any point intersections
+lines as (
+  select *
+  from overlay
+  where st_geometrytype(geom) = 'ST_LineString'
+)
+-- remove really short fragments
+select * from lines
+where st_length(geom) > .0001;
+
+
+-- load ir data where applicable
+insert into ir_cariboo (
   integratedroads_id,
   bcgw_source,
   cef_road_priority_rank,
@@ -111,111 +108,69 @@ insert into cer_cariboo (
   ogp_row_construction_desc,
   ogp_row_proponent,
   ogp_row_land_type,
+  length_metres,
   geom
 )
-select * from (
 select
   a.integratedroads_id,
-  i.bcgw_source,
-  i.cef_road_priority_rank,
-  i.cef_road_attr_src_list,
-  i.map_tile,
-  i.transport_line_id,
-  i.dra_structure,
-  i.dra_type,
-  i.dra_surface,
-  i.dra_name_full,
-  i.dra_road_name_id,
-  i.dra_data_capture_date,
-  i.dra_total_number_of_lanes,
-  i.ften_map_label,
-  i.ften_forest_file_id,
-  i.ften_road_section_id,
-  i.ften_file_status_code,
-  i.ften_file_type_code,
-  i.ften_file_type_description,
-  i.ften_life_cycle_status_code,
-  i.ften_award_date,
-  i.ften_retirement_date,
-  i.ften_client_number,
-  i.ften_client_name,
-  i.results_forest_cover_id,
-  i.results_opening_id,
-  i.results_stocking_status_code,
-  i.results_stocking_type_code,
-  i.results_silv_polygon_number,
-  i.results_reference_year,
-  i.results_when_created,
-  i.results_when_updated,
-  i.og_petrlm_dev_rd_pre06_pub_id,
-  i.petrlm_development_road_type,
-  i.application_received_date,
-  i.proponent,
-  i.ogp_road_segment_permit_id,
-  i.ogp_road_number,
-  i.ogp_segment_number,
-  i.ogp_road_type,
-  i.ogp_road_type_desc,
-  i.ogp_activity_approval_date,
-  i.ogp_proponent,
-  i.ogprow_og_road_area_permit_id,
-  i.ogpermitsrow_road_number,
-  i.ogp_row_road_segment,
-  i.ogp_row_land_stage_desc,
-  i.ogp_row_land_stage_eff_date,
-  i.ogp_row_construction_desc,
-  i.ogp_row_proponent,
-  i.ogp_row_land_type,
-  (st_dump(st_difference(a.geom, c.geom))).geom as geom
-from to_cut a
-inner join cer i on a.integratedroads_id = i.integratedroads_id
-, cutter_agg c
-) as f where st_geometrytype(geom) = 'ST_LineString';
+  a.bcgw_source,
+  a.cef_road_priority_rank,
+  a.cef_road_attr_src_list,
+  a.map_tile,
+  a.transport_line_id,
+  a.dra_structure,
+  a.dra_type,
+  a.dra_surface,
+  a.dra_name_full,
+  a.dra_road_name_id,
+  a.dra_data_capture_date,
+  a.dra_total_number_of_lanes,
+  a.ften_map_label,
+  a.ften_forest_file_id,
+  a.ften_road_section_id,
+  a.ften_file_status_code,
+  a.ften_file_type_code,
+  a.ften_file_type_description,
+  a.ften_life_cycle_status_code,
+  a.ften_award_date,
+  a.ften_retirement_date,
+  a.ften_client_number,
+  a.ften_client_name,
+  a.results_forest_cover_id,
+  a.results_opening_id,
+  a.results_stocking_status_code,
+  a.results_stocking_type_code,
+  a.results_silv_polygon_number,
+  a.results_reference_year,
+  a.results_when_created,
+  a.results_when_updated,
+  a.og_petrlm_dev_rd_pre06_pub_id,
+  a.petrlm_development_road_type,
+  a.application_received_date,
+  a.proponent,
+  a.ogp_road_segment_permit_id,
+  a.ogp_road_number,
+  a.ogp_segment_number,
+  a.ogp_road_type,
+  a.ogp_road_type_desc,
+  a.ogp_activity_approval_date,
+  a.ogp_proponent,
+  a.ogprow_og_road_area_permit_id,
+  a.ogpermitsrow_road_number,
+  a.ogp_row_road_segment,
+  a.ogp_row_land_stage_desc,
+  a.ogp_row_land_stage_eff_date,
+  a.ogp_row_construction_desc,
+  a.ogp_row_proponent,
+  a.ogp_row_land_type,
+  round(st_length(b.geom)::numeric, 4) as length_metres,
+  b.geom
+from ir a
+inner join ir_cut b on a.integratedroads_id = b.integratedroads_id
+where (b.region_name != 'Cariboo Natural Resource Region' or coalesce(b.deskex_status, 'NA') != 'Complete');
 
-
--- now cut and load the cariboo roads
-with overlay as (
-  select
-    a.capture_date as dra_data_capture_date,
-    a.structured_name_1 as dra_name_full,
-    dra_struct.description as dra_structure,
-    a.transport_line_type_code as ccr_transport_line_type_code,
-    a.transport_line_tenure_type_code as ccr_transport_line_tenure_type_code,
-    a.deactivation_date as ccr_deactivation_date,
-    a.private_flag as ccr_private_flag,
-    a.access_restricted_flag as ccr_access_restricted_flag,
-    a.access_restriction_type as ccr_access_restriction_type,
-    a.ground_truth_required as ccr_ground_truth_required,
-    a.desktop_ex_status as ccr_desktop_ex_status,
-    a.map_tile,
-    case
-      when st_coveredby(a.geom, b.geom) then a.geom
-      else st_intersection(a.geom, b.geom)
-    end as geom
-  from ccr a
-  inner join cutter b on st_intersects(a.geom, b.geom)
-  left outer join whse_basemapping.transport_line_structure_code dra_struct
-    on a.transport_line_structure_code = dra_struct.transport_line_structure_code
-),
-singlepart as (
-  select
-    dra_data_capture_date,
-    dra_name_full,
-    dra_structure,
-    ccr_transport_line_type_code,
-    ccr_transport_line_tenure_type_code,
-    ccr_deactivation_date,
-    ccr_private_flag,
-    ccr_access_restricted_flag,
-    ccr_access_restriction_type,
-    ccr_ground_truth_required,
-    ccr_desktop_ex_status,
-    map_tile,
-    (st_dump(geom)).geom
-  from overlay
-)
-
-insert into cer_cariboo (
+-- load ccr data where applicable
+insert into ir_cariboo (
   bcgw_source,
   cef_road_priority_rank,
   cef_road_attr_src_list,
@@ -238,19 +193,23 @@ select
   'CARIBOO_CONSOLIDATED_ROADS' as bcgw_source,
   1 as cef_road_priority_rank,
   1 as cef_road_attr_src_list,
-  dra_data_capture_date,
-  dra_name_full,
-  dra_structure,
-  ccr_transport_line_type_code,
-  ccr_transport_line_tenure_type_code,
-  ccr_deactivation_date,
-  ccr_private_flag,
-  ccr_access_restricted_flag,
-  ccr_access_restriction_type,
-  ccr_ground_truth_required,
-  ccr_desktop_ex_status,
-  map_tile,
-  round(st_length(geom)::numeric, 4) as length_metres,
-  geom
-from singlepart
-where  st_geometrytype(geom) = 'ST_LineString';
+  a.capture_date as dra_data_capture_date,
+  a.structured_name_1 as dra_name_full,
+  dra_struct.description as dra_structure,
+  a.transport_line_type_code as ccr_transport_line_type_code,
+  a.transport_line_tenure_type_code as ccr_transport_line_tenure_type_code,
+  a.deactivation_date as ccr_deactivation_date,
+  a.private_flag as ccr_private_flag,
+  a.access_restricted_flag as ccr_access_restricted_flag,
+  a.access_restriction_type as ccr_access_restriction_type,
+  a.ground_truth_required as ccr_ground_truth_required,
+  a.desktop_ex_status as ccr_desktop_ex_status,
+  a.map_tile,
+  round(st_length(b.geom)::numeric, 4) as length_metres,
+  b.geom
+from ccr a
+inner join ccr_cut b on a.ogc_fid = b.ogc_fid
+left outer join whse_basemapping.transport_line_structure_code dra_struct
+  on a.transport_line_structure_code = dra_struct.transport_line_structure_code
+where b.region_name = 'Cariboo Natural Resource Region'
+and b.deskex_status = 'Complete';
