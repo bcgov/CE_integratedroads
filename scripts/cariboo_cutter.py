@@ -50,7 +50,7 @@ def cariboo_cutter(index_file, out_file, verbose, quiet):
     overlay2.columns = [x.lower() for x in overlay2.columns]
 
     # dump
-    overlay2.to_parquet(out_file)
+    overlay2.to_parquet(out_file, index=False)
 
 
 if __name__ == "__main__":

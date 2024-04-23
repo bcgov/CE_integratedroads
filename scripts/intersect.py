@@ -36,7 +36,7 @@ def intersect(source_dataset, tile_dataset, out_file, verbose, quiet):
     # add 250k tile column and sort by it
     tiled_data["map_tile_250"] = tiled_data["map_tile"].str[:4]
     tiled_data = tiled_data.sort_values("map_tile_250")
-    tiled_data.to_parquet(out_file)
+    tiled_data.to_parquet(out_file, index=False)
 
 
 if __name__ == "__main__":
