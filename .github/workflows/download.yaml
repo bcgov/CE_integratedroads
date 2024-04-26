@@ -5,6 +5,8 @@ on:
   workflow_call:
 env:
   DATABASE_URL: ${{ vars.DATABASE_URL }}
+  CCR_URL: ${{ vars.CCR_URL }}
+  CCR_TRACKING_URL: ${{ vars.CCR_URL }}
   AWS_ENDPOINT_URL: ${{ vars.AWS_ENDPOINT_URL }}
   AWS_S3_ENDPOINT: ${{ vars.AWS_S3_ENDPOINT  }}
   AWS_VIRTUAL_HOSTING: ${{ vars.AWS_VIRTUAL_HOSTING }}
