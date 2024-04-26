@@ -50,8 +50,9 @@ aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$OBJECTSTORE_BU
 aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$OBJECTSTORE_BUCKET
 
 # Cariboo Roads
-curl ftp://ftp.geobc.gov.bc.ca/pub/outgoing/Regional/Cariboo/CCR/Cariboo_Consolidated_Roads.zip \
+curl $CCR_URL \
   -o tmp/Cariboo_Consolidated_Roads.gdb.zip
+
 ogr2ogr \
   -f Parquet \
   -unsetFid \
@@ -72,7 +73,7 @@ ogr2ogr \
   -unsetFid \
   -dim XY \
   tmp/ccr_project_tracking.parquet \
-  /vsizip//vsicurl/ftp://ftp.geobc.gov.bc.ca/pub/outgoing/Regional/Cariboo/CCR/Project_Tracking.gdb.zip \
+  /vsizip//vsicurl/$CCR_TRACKING_URL \
   CCR_Project_Tracking
 
 aws s3 cp tmp/ccr_project_tracking.parquet s3://$OBJECTSTORE_BUCKET
