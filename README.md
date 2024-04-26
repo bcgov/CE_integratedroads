@@ -29,7 +29,6 @@ Data are then preprocessed:
 Roads are then loaded to the output table in order of decreasing priority. Portions of lower priority roads within 7m of a higher priority road are deleted. Where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road. This is done independently for each 1:250k tile and results are written to Parquet on object storage. 
 
 When all tiles are complete, the resulting collection of Parquet files is consolidated into a single output table. 
-For areas where official QA'ed consolidated roads data are available (currently only for the Cariboo Region), the "integrated" roads are removed and replaced with the official data.
 
 Output is written as a zipped file geodatabase on NRS object storage.
 
