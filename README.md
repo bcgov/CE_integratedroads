@@ -7,13 +7,14 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 
 |Priority | Name                        | Table                        | Query                        |
 |---------|-----------------------------|------------------------------|------------------------------|
-| 1 | [Digital Road Atlas (DRA)](https://catalogue.data.gov.bc.ca/dataset/digital-road-atlas-dra-master-partially-attributed-roads) | `WHSE_BASEMAPPING.TRANSPORT_LINE` (*from DRA ftp*) | `TRANSPORT_LINE_SURFACE_CODE <> 'B'` |
-| 2 | [Forest Tenure Road Section Lines, ACTIVE](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'ACTIVE'` |
-| 3 | [Forest Tenure Road Section Lines, RETIRED](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'RETIRED'` |
-| 4 | [RESULTS - Forest Cover Inventory - roads](https://catalogue.data.gov.bc.ca/dataset/results-forest-cover-inventory) | `WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW` | `STOCKING_STATUS_CODE in ('NP', 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'` |
-| 5 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | `WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP` |
-| 6 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP` |
-| 7 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP` |
+| 1 | Cariboo Consolidated Roads | `Cariboo_Consolidated_Roads`      |  |
+| 2 | [Digital Road Atlas (DRA)](https://catalogue.data.gov.bc.ca/dataset/digital-road-atlas-dra-master-partially-attributed-roads) | `WHSE_BASEMAPPING.TRANSPORT_LINE` (*from DRA ftp*) | `TRANSPORT_LINE_SURFACE_CODE <> 'B'` |
+| 3 | [Forest Tenure Road Section Lines, ACTIVE](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'ACTIVE'` |
+| 4 | [Forest Tenure Road Section Lines, RETIRED](https://catalogue.data.gov.bc.ca/dataset/forest-tenure-road-section-lines) | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | `LIFE_CYCLE_STATUS_CODE = 'RETIRED'` |
+| 5 | [RESULTS - Forest Cover Inventory - roads](https://catalogue.data.gov.bc.ca/dataset/results-forest-cover-inventory) | `WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW` | `STOCKING_STATUS_CODE in ('NP', 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'` |
+| 6 | [OGC Petroleum Development Roads Pre-2006](https://catalogue.data.gov.bc.ca/dataset/ogc-petroleum-development-roads-pre-2006-public-version) | `WHSE_MINERAL_TENURE.OG_PETRLM_DEV_RDS_PRE06_PUB_SP` |
+| 7 | [Oil and Gas Commission Road Segment Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-segment-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_SEGMENT_PERMIT_SP` |
+| 8 | [Oil and Gas Commission Road Right of Way Permits](https://catalogue.data.gov.bc.ca/dataset/oil-and-gas-commission-road-right-of-way-permits) | `WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP` |
 
 ## Method
 
@@ -29,6 +30,7 @@ Data are then preprocessed:
 Roads are then loaded to the output table in order of decreasing priority. Portions of lower priority roads within 7m of a higher priority road are deleted. Where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road. This is done independently for each 1:250k tile and results are written to Parquet on object storage. 
 
 When all tiles are complete, the resulting collection of Parquet files is consolidated into a single output table. 
+For areas where official QA'ed consolidated roads data are available (currently only for the Cariboo Region), the "integrated" roads are removed and replaced with the official data.
 
 Output is written as a zipped file geodatabase on NRS object storage.
 
