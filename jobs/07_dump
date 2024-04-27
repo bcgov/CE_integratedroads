@@ -82,7 +82,6 @@ aws s3 cp $outfile.zip s3://$OBJECTSTORE_BUCKET
 ogr2ogr   \
   -f OpenFileGDB \
   -nlt LINESTRING \
-  -update \
   -select TRANSPORT_LINE_ID,STRUCTURED_NAME_1,STRUCTURED_NAME_1_ID,CAPTURE_DATE,TOTAL_NUMBER_OF_LANES,TRANSPORT_LINE_STRUCTURE_CODE,TRANSPORT_LINE_TYPE_CODE,TRANSPORT_LINE_SURFACE_CODE,geometry \
   $sources \
   /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
