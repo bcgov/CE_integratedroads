@@ -18,11 +18,7 @@ jobs:
     uses: ./.github/workflows/integrate.yaml
     secrets: inherit
     needs: preprocess
-  cariboo:
-    uses: ./.github/workflows/cariboo.yaml
-    secrets: inherit
-    needs: integrate
   dump:
     uses: ./.github/workflows/dump.yaml
     secrets: inherit
-    needs: cariboo
+    needs: integrate

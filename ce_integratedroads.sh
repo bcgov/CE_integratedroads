@@ -18,9 +18,4 @@ do
 	set -e ; jobs/06_integrate $tile
 done
 
-for tile in 092I 092N 092O 092P 093A 093B 093C 093F 093G 093H
-do
-	set -e ; jobs/07_cariboo $tile
-done
-
-jobs/08_dump
+jobs/07_dump

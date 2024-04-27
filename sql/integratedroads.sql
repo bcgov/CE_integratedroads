@@ -107,15 +107,6 @@ SELECT distinct on (s.integratedroads_id)
   og_permits_row.construction_desc          as ogp_row_construction_desc,
   og_permits_row.proponent                  as ogp_row_proponent,
   og_permits_row.land_type                  as ogp_row_land_type,
-  -- include empty cariboo consolidated roads columns
-  null::text                                as ccr_transport_line_type_code,
-  null::text                                as ccr_transport_line_tenure_type_code,
-  null::text                                as ccr_deactivation_date,
-  null::text                                as ccr_private_flag,
-  null::text                                as ccr_access_restricted_flag,
-  null::text                                as ccr_access_restriction_type,
-  null::text                                as ccr_ground_truth_required,
-  null::text                                as ccr_desktop_ex_status,
   round(st_length(i.geom)::numeric, 4)      as length_metres,
   i.geom
 FROM integratedroads_2 s

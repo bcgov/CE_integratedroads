@@ -48,35 +48,3 @@ ogr2ogr \
 aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$OBJECTSTORE_BUCKET
 aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$OBJECTSTORE_BUCKET
 aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$OBJECTSTORE_BUCKET
-
-# Cariboo Roads
-curl $CCR_URL \
-  -o tmp/Cariboo_Consolidated_Roads.gdb.zip
-
-ogr2ogr \
-  -f Parquet \
-  -unsetFid \
-  -dim XY \
-  -select ccr_id,ccr_network_id,capture_date,structured_name_1,transport_line_type_code,transport_line_structure_code,transport_line_tenure_type_code,deactivation_date,private_flag,access_restricted_flag,access_restriction_type,ground_truth_required,desktop_ex_status \
-  tmp/cariboo_consolidated_roads.parquet \
-  /vsizip/tmp/Cariboo_Consolidated_Roads.gdb.zip \
-  Cariboo_Consolidated_Roads
-
-python scripts/intersect.py \
-  tmp/cariboo_consolidated_roads.parquet \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
-  s3://$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet
-
-# cariboo road status
-ogr2ogr \
-  -f Parquet \
-  -unsetFid \
-  -dim XY \
-  tmp/ccr_project_tracking.parquet \
-  /vsizip//vsicurl/$CCR_TRACKING_URL \
-  CCR_Project_Tracking
-
-aws s3 cp tmp/ccr_project_tracking.parquet s3://$OBJECTSTORE_BUCKET
-
-# create the cariboo cutter
-python scripts/cariboo_cutter.py s3://$OBJECTSTORE_BUCKET/ccr_project_tracking.parquet s3://$OBJECTSTORE_BUCKET/cariboo_cutter.parquet

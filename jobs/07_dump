@@ -69,14 +69,6 @@ ogr2ogr   \
    ogp_row_construction_desc AS \"OGP_ROW_CONSTRUCTION_DESC\",
    ogp_row_proponent AS \"OGP_ROW_PROPONENT\",
    ogp_row_land_type AS \"OGP_ROW_LAND_TYPE\",
-   ccr_transport_line_type_code AS \"CCR_TRANSPORT_LINE_TYPE_CODE\",
-   ccr_transport_line_tenure_type_code AS \"CCR_TRANSPORT_LINE_TENURE_TYPE_CODE\",
-   ccr_deactivation_date AS \"CCR_DEACTIVATION_DATE\",
-   ccr_private_flag AS \"CCR_PRIVATE_FLAG\",
-   ccr_access_restricted_flag AS \"CCR_ACCESS_RESTRICTED_FLAG\",
-   ccr_access_restriction_type AS \"CCR_ACCESS_RESTRICTION_TYPE\",
-   ccr_ground_truth_required AS \"CCR_GROUND_TRUTH_REQUIRED\",
-   ccr_desktop_ex_status AS \"CCR_DESKTOP_EX_STATUS\",
    length_metres AS \"LENGTH_METRES\",
    geom
   FROM integratedroads" \
@@ -87,23 +79,6 @@ zip -r $outfile.zip $outfile
 aws s3 cp $outfile.zip s3://$OBJECTSTORE_BUCKET
 
 # archive source data
-ogr2ogr   \
-  -f OpenFileGDB \
-  -nlt LINESTRING \
-  -select CCR_ID,CCR_NETWORK_ID,CAPTURE_DATE,STRUCTURED_NAME_1,TRANSPORT_LINE_TYPE_CODE,TRANSPORT_LINE_STRUCTURE_CODE,TRANSPORT_LINE_TENURE_TYPE_CODE,DEACTIVATION_DATE,PRIVATE_FLAG,ACCESS_RESTRICTED_FLAG,ACCESS_RESTRICTION_TYPE,GROUND_TRUTH_REQUIRED,DESKTOP_EX_STATUS,geometry \
-  $sources \
-  /vsis3/$OBJECTSTORE_BUCKET/cariboo_consolidated_roads.parquet \
-  cariboo_consolidated_roads
-
-ogr2ogr   \
-  -f OpenFileGDB \
-  -nlt POLYGON \
-  -update \
-  -select DeskEx_Status,DeskEx_IDIR,DeskEx_Status_Date,GroundTruth_Status,GroundTruth_IDIR,GroundTruth_Status_Date,MapTile,SHAPE \
-  $sources \
-  /vsis3/$OBJECTSTORE_BUCKET/ccr_project_tracking.parquet \
-  ccr_project_tracking
-
 ogr2ogr   \
   -f OpenFileGDB \
   -nlt LINESTRING \
