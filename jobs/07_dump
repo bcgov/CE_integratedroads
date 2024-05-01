@@ -16,6 +16,7 @@ rm -rf $outfile.zip
 # dump to file
 ogr2ogr   \
   -f OpenFileGDB \
+  --config OPENFILEGDB_DEFAULT_STRING_WIDTH 255 \
   -nlt LINESTRING \
   -nln $outlayer \
   -sql "SELECT
@@ -75,6 +76,8 @@ ogr2ogr   \
    geom
   FROM integratedroads" \
   -dialect SQLite \
+  -lco CREATE_SHAPE_AREA_AND_LENGTH_FIELDS=YES \
+  -mapfieldtype Integer64=Integer \
   $outfile \
   integratedroads
 
