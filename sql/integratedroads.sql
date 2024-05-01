@@ -51,13 +51,13 @@ SELECT distinct on (s.integratedroads_id)
     WHEN i.og_permits_row_id IS NOT NULL THEN 'WHSE_MINERAL_TENURE.OG_ROAD_AREA_PERMIT_SP'
   END AS bcgw_source,
   CASE
-    WHEN i.transport_line_id IS NOT NULL THEN 2
-    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 3
-    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 4
-    WHEN i.results_id IS NOT NULL THEN 5
-    WHEN i.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 6
-    WHEN i.og_road_segment_permit_id IS NOT NULL THEN 7
-    WHEN i.og_permits_row_id IS NOT NULL THEN 8
+    WHEN i.transport_line_id IS NOT NULL THEN 1
+    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 2
+    WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 3
+    WHEN i.results_id IS NOT NULL THEN 4
+    WHEN i.og_petrlm_dev_rd_pre06_pub_id IS NOT NULL THEN 5
+    WHEN i.og_road_segment_permit_id IS NOT NULL THEN 6
+    WHEN i.og_permits_row_id IS NOT NULL THEN 7
   END AS cef_road_priority_rank,
   array_to_string(array_remove(array[rasl.s1, rasl.s2, rasl.s3, rasl.s4, rasl.s5, rasl.s6, rasl.s7], NULL),';') as cef_road_attr_src_list,
   i.map_tile                                as map_tile,
