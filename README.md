@@ -10,12 +10,12 @@ All processing is done via a [manually triggered Github Actions workflow](https:
 2. Where source data are not avialable via file, download is via WFS, using queries defined in [bcdata.json](bcdata.json)
 3. Data are cut by BC 1:20k tile and written to Parquet files on S3 compatible object storage
 4. Downloaded data are preprocessed in PostGIS as required:
-  1. centerlines of polygon road sources are approximated
-  2. FTEN roads are cleaned slightly, snapping endpoints within 7m to other same-source roads
+    1. centerlines of polygon road sources are approximated
+    2. FTEN roads are cleaned slightly, snapping endpoints within 7m to other same-source roads
 5. Still using PostGIS, the "integration" is processed per 1:250k tile:
-  1. roads are loaded to the output table in order of decreasing priority
-  2. portions of lower priority roads within 7m of a higher priority road are deleted
-  3. where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road
+    1. roads are loaded to the output table in order of decreasing priority
+    2. portions of lower priority roads within 7m of a higher priority road are deleted
+    3. where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road
 6. Output (for a given 250k tile) is written to Parquet file on object storage
 7. When all tiles are complete, the resulting collection of Parquet files is consolidated into a single zipped file geodatabase on NRS object storage
 
