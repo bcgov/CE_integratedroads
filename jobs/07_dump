@@ -77,6 +77,7 @@ ogr2ogr   \
   FROM integratedroads" \
   -dialect SQLite \
   -lco CREATE_SHAPE_AREA_AND_LENGTH_FIELDS=YES \
+  -lco DOCUMENTATION="<my_doc/>" \
   -mapfieldtype Integer64=Integer \
   $outfile \
   integratedroads
