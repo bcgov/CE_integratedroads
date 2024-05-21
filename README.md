@@ -6,18 +6,18 @@ Quckly merge various BC road data sources into a single layer for Cumulative Eff
 
 All processing is done via a [manually triggered Github Actions workflow](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml) (click on the `Run Workflow` button for the `ce-integratedroads` workflow to trigger a run).
 
-- source datasets are downloaded from file where possible
-- where source data are not avialable via file, download is via WFS, using queries defined in [bcdata.json](bcdata.json)
-- data are cut by BC 1:20k tile and written to Parquet files on S3 compatible object storage
-- downloaded data are preprocessed in PostGIS as required:
-   + centerlines of polygon road sources are approximated
-   + FTEN roads are cleaned slightly, snapping endpoints within 7m to other same-source roads
-- still using PostGIS, the "integration" is processed per for each 1:250k tile:
-   + roads are loaded to the output table in order of decreasing priority
-   + portions of lower priority roads within 7m of a higher priority road are deleted
-   + where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road
-- output (for a given 250k tile) is written to Parquet file on object storage
-- when all tiles are complete, the resulting collection of Parquet files is consolidated into a single zipped file geodatabase on NRS object storage
+1. source datasets are downloaded from file where possible
+2. where source data are not avialable via file, download is via WFS, using queries defined in [bcdata.json](bcdata.json)
+3. data are cut by BC 1:20k tile and written to Parquet files on S3 compatible object storage
+4. downloaded data are preprocessed in PostGIS as required:
+   a) centerlines of polygon road sources are approximated
+   b) FTEN roads are cleaned slightly, snapping endpoints within 7m to other same-source roads
+5. still using PostGIS, the "integration" is processed per 1:250k tile:
+   a) roads are loaded to the output table in order of decreasing priority
+   b) portions of lower priority roads within 7m of a higher priority road are deleted
+   c) where the endpoint of a remaining lower priority road is within 7m of a higher prioirity road, the endpoint of the lower priority road is snapped to the closest point on the higher priority road
+6. output (for a given 250k tile) is written to Parquet file on object storage
+7. when all tiles are complete, the resulting collection of Parquet files is consolidated into a single zipped file geodatabase on NRS object storage
 
 ## Output documentation
 
