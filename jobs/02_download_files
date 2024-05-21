@@ -8,8 +8,12 @@ set -euxo pipefail
 mkdir -p tmp
 
 # DRA
-curl https://nrs.objectstore.gov.bc.ca/itqlyp/DRA_Public/dgtl_road_atlas.gdb.zip \
-  -o tmp/dgtl_road_atlas.gdb.zip
+
+#curl https://nrs.objectstore.gov.bc.ca/itqlyp/DRA_Public/dgtl_road_atlas.gdb.zip \
+#  -o tmp/dgtl_road_atlas.gdb.zip
+
+# use cached version while official version awaits fixes
+aws s3 cp s3://$OBJECTSTORE_BUCKET/dgtl_road_atlas.gdb.zip tmp/dgtl_road_atlas.gdb.zip
 
 ogr2ogr \
   -f Parquet \
