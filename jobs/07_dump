@@ -77,7 +77,25 @@ ogr2ogr   \
   FROM integratedroads" \
   -dialect SQLite \
   -lco CREATE_SHAPE_AREA_AND_LENGTH_FIELDS=YES \
-  -lco DOCUMENTATION="<my_doc/>" \
+  -lco DOCUMENTATION="<metadata xml:lang=\"en\">
+<dataIdInfo>
+<idCitation>
+<resTitle Sync=\"FALSE\">BC Cumulative Effects Framework Integrated Roads</resTitle>
+<presForm>
+<PresFormCd value=\"005\" Sync=\"TRUE\"/>
+</presForm>
+</idCitation>
+<idPurp>This dataset was created specifically for cumulative effects (CE) analysis in British Columbia, Canada. It is intended for strategic level analysis, and should not be considered positionally accurate, or be used for navigation.</idPurp>
+<idAbs>See complete documentation at <A href=\"https://github.com/bcgov/CE_integratedroads/blob/main/metadata.md\">https://github.com/bcgov/CE_integratedroads/blob/main/metadata.md</A></idAbs>
+<searchKeys>
+<keyword>British Columbia</keyword>
+<keyword>Cumulative Effects Framework</keyword>
+<keyword>Integrated Roads</keyword>
+<keyword>CE</keyword>
+<keyword>CEF</keyword>
+</searchKeys>
+</dataIdInfo>
+</metadata>" \
   -mapfieldtype Integer64=Integer \
   $outfile \
   integratedroads
