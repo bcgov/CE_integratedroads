@@ -9,10 +9,10 @@ mkdir -p tmp
 
 # DRA
 
-#curl https://nrs.objectstore.gov.bc.ca/itqlyp/DRA_Public/dgtl_road_atlas.gdb.zip \
+#curl ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/DRA_Public/dgtl_road_atlas.gdb.zip \
 #  -o tmp/dgtl_road_atlas.gdb.zip
 
-# use cached version while official version awaits fixes
+# temp cached version of April 24 2024 ftp data (data model of ftp data has changed)
 aws s3 cp s3://$OBJECTSTORE_BUCKET/dgtl_road_atlas.gdb.zip tmp/dgtl_road_atlas.gdb.zip
 
 ogr2ogr \

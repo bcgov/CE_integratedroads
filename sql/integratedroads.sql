@@ -43,7 +43,7 @@ SELECT distinct on (s.integratedroads_id)
   i.integratedroads_id                      AS INTEGRATEDROADS_ID,
   -- source used for the linework (taken from the _1 table)
   CASE
-    WHEN i.transport_line_id IS NOT NULL THEN 'WHSE_BASEMAPPING.TRANSPORT_LINE'
+    WHEN i.transport_line_id IS NOT NULL THEN 'WHSE_BASEMAPPING.DRA_DGTL_ROAD_ATLAS_MPAR_SP'
     WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'ACTIVE' THEN 'WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW ACTIVE'
     WHEN i.map_label IS NOT NULL and ften.life_cycle_status_code = 'RETIRED' THEN 'WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW RETIRED'
     WHEN i.results_id IS NOT NULL THEN 'WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW'

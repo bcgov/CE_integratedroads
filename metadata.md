@@ -54,7 +54,7 @@ Road data sources listed in hierarchical order (i.e., DRA takes priority, if low
 
 | rank | source        | notes      |
 |------|---------------|------------|
-| 1 | `WHSE_BASEMAPPING.DRA_DGTL_ROAD_ATLAS_MPAR_SP` | |
+| 1 | `WHSE_BASEMAPPING.DRA_DGTL_ROAD_ATLAS_MPAR_SP` | downloaded from [ftp](ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/DRA_Public/dgtl_road_atlas.gdb.zip)|
 | 2 | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | active |
 | 3 | `WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW` | retired (retired means no longer under permit, but road may still exist) |
 | 4 | `WHSE_FOREST_VEGETATION.RSLT_FOREST_COVER_INV_SVW` | polygons converted to centerlines |
