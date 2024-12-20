@@ -15,28 +15,30 @@ def configure_logging(verbosity):
 
 
 @click.command()
-@click.argument("source_dataset")
-@click.argument("tile_dataset")
+@click.argument("dataset_a")
+@click.argument("dataset_b")
 @click.argument("out_file")
+@click.option("--sort_by", "-s", help="Name of sort column")
 @verbose_opt
 @quiet_opt
-def intersect(source_dataset, tile_dataset, out_file, verbose, quiet):
+def intersect(dataset_a, dataset_b, out_file, sort_by, verbose, quiet):
     """
-    Find intersection of source_dataset with tile_dataset and write results to out_file
+    Compute intersection of dataset_a with dataset_b and write results to out_file
     """
     verbosity = verbose - quiet
     configure_logging(verbosity)
 
     # load, overlay, dump
-    click.echo(f"Intersecting {source_dataset} with {tile_dataset}")
-    source = geopandas.read_parquet(source_dataset)
-    tiles = geopandas.read_parquet(tile_dataset)
-    tiled_data = source.overlay(tiles, how="intersection")
+    click.echo(f"Intersecting {dataset_a} with {dataset_b}")
+    df_a = geopandas.read_parquet(dataset_a)
+    df_b = geopandas.read_parquet(dataset_b)
+    overlay = df_a.overlay(df_b, how="intersection")
+    if sort_by:
+        if sort_by not in overlay.columns:
+            raise ValueError(f"Sort column {sort_by} not found in sources")
+        overlay = overlay.sort_values(sort_by)
     click.echo(f"Writing overlay to {out_file}")
-    # add 250k tile column and sort by it
-    tiled_data["map_tile_250"] = tiled_data["map_tile"].str[:4]
-    tiled_data = tiled_data.sort_values("map_tile_250")
-    tiled_data.to_parquet(out_file, index=False)
+    overlay.to_parquet(out_file, index=False)
 
 
 if __name__ == "__main__":

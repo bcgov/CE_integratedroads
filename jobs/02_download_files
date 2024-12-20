@@ -9,44 +9,53 @@ mkdir -p tmp
 
 # DRA
 
-#curl https://nrs.objectstore.gov.bc.ca/itqlyp/DRA_Public/dgtl_road_atlas.gdb.zip \
-#  -o tmp/dgtl_road_atlas.gdb.zip
+# Download
+# We use the non-public copy DRA because the public dataset's schema does not match
+# the schema used in these queries. Below extracts only the public portion of the data
+curl \
+  -o /tmp/transport_line.gdb.zip \
+  https://nrs.objectstore.gov.bc.ca/itqlyp/GBA/PROVINCE/transport_line.gdb.zip
 
-# use cached version while official version awaits fixes
-aws s3 cp s3://$OBJECTSTORE_BUCKET/dgtl_road_atlas.gdb.zip tmp/dgtl_road_atlas.gdb.zip
+# extract password protected zipfile
+unzip \
+  -P $DRAPWD \
+  -d /tmp \
+  -o \
+  /tmp/transport_line.gdb.zip
 
 ogr2ogr \
   -f Parquet \
   tmp/whse_basemapping.transport_line.parquet \
-  -select transport_line_id,structured_name_1,structured_name_1_id,capture_date,total_number_of_lanes,transport_line_structure_code,transport_line_type_code,transport_line_surface_code \
+  -select TRANSPORT_LINE_ID,STRUCTURED_NAME_1,STRUCTURED_NAME_1_ID,CAPTURE_DATE,TOTAL_NUMBER_OF_LANES,TRANSPORT_LINE_STRUCTURE_CODE,TRANSPORT_LINE_TYPE_CODE,TRANSPORT_LINE_SURFACE_CODE \
   -unsetFid \
   -dim XY \
   -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
-  /vsizip/tmp/dgtl_road_atlas.gdb.zip \
+  /tmp/transport_line.gdb \
   TRANSPORT_LINE
 
 python scripts/intersect.py \
   tmp/whse_basemapping.transport_line.parquet \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet
+  whse_basemapping.bcgs_20k_grid.parquet \
+  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
+  --sort_by map_tile_250
 
 # dump dra code tables to csv and send to s3 vis awscli
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_structure_code.csv \
-  /vsizip/tmp/dgtl_road_atlas.gdb.zip \
+  /tmp/transport_line.gdb \
   TRANSPORT_LINE_STRUCTURE_CODE
 
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_type_code.csv \
-  /vsizip/tmp/dgtl_road_atlas.gdb.zip \
+  /tmp/transport_line.gdb \
   TRANSPORT_LINE_TYPE_CODE
 
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_surface_code.csv \
-  /vsizip/tmp/dgtl_road_atlas.gdb.zip \
+  /tmp/transport_line.gdb \
   TRANSPORT_LINE_SURFACE_CODE
 
 aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$OBJECTSTORE_BUCKET

@@ -2,16 +2,62 @@
 set -euxo pipefail
 
 # ----
-# Download and tile BC WFS datasets
+# Download BC WFS datasets to file
 # ----
 
-# get grid
-python scripts/bc2pq.py \
-  whse_basemapping.bcgs_20k_grid \
-  --columns map_tile \
-  --out_file s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
+bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
+    ogr2ogr -f Parquet \
+      -sql "select substr(map_tile, 1, 4) as map_tile_250 from \"\"" \
+      whse_basemapping.bcgs_20k_grid.parquet \
+      /vsistdin/
 
-# everything else
-python scripts/bc2pq.py \
-  bcdata.json \
-  --tile_dataset s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet
+jq -c '.[]' bcdata.json | while read item; do
+    # read all keys in config
+    SOURCE=$(jq -r '.dataset' <<< "$item")
+    QUERY=$(jq -r '.query // empty' <<< "$item")
+    PROMOTE_TO_MULTI=$(jq -r '.promote_to_multi // empty' <<< "$item")
+    SELECT_COLUMNS=$(jq -r '.columns // empty | join(",")' <<< "$item")
+    PK=$(jq -r '.primary_key // empty' <<< "$item")
+
+    # parse bcdata options
+    # an empty query string works fine if no query supplied from config
+    if [ -z "$QUERY" ] || [ "$QUERY" == "null" ]; then
+        QUERY=""
+    fi
+
+    if [ -z "$PROMOTE_TO_MULTI" ] || [ "$PROMOTE_TO_MULTI" == "false" ]; then
+        PROMOTE_OPTION=""
+    else
+        PROMOTE_OPTION="--promote-to-multi"      
+    fi
+
+    # parse OGR options
+    if [ -z "$SELECT_COLUMNS" ] || [ "$SELECT_COLUMNS" == "null" ]; then
+        SELECT_OPTION=""
+    else
+        SELECT_OPTION="-select $SELECT_COLUMNS"
+    fi
+
+    if [ -z "$PK" ] || [ "$PK" == "null" ]; then
+        FID_OPTION=""
+    else
+        FID_OPTION="-lco FID=$PK"
+    fi
+    
+    # request data from WFS and dump to parquet
+    bcdata dump -v --lowercase --query "$QUERY" $PROMOTE_OPTION $SOURCE |
+      ogr2ogr -f Parquet \
+        $SELECT_OPTION \
+        $FID_OPTION \
+        $SOURCE.parquet \
+        /vsistdin/
+
+    # overlay with tiles, sort by tile id, write to s3
+    python scripts/intersect.py \
+      $SOURCE.parquet \
+      whse_basemapping.bcgs_20k_grid.parquet \
+      s3://$OBJECTSTORE_BUCKET/$SOURCE.parquet \
+      --sort_by map_tile_250
+
+done
+

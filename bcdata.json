@@ -1,7 +1,6 @@
 [
     {
         "dataset": "whse_forest_tenure.ften_road_section_lines_svw",
-        "name": "whse_forest_tenure.ften_road_section_lines_svw",
         "query": "LIFE_CYCLE_STATUS_CODE in ('ACTIVE', 'RETIRED')",
         "columns":
             [
@@ -21,7 +20,6 @@
     },
     {
         "dataset": "whse_forest_vegetation.rslt_forest_cover_inv_svw",
-        "name": "whse_forest_vegetation.rslt_forest_cover_inv_svw",
         "query": "STOCKING_STATUS_CODE in ('NP', 'U') AND STOCKING_TYPE_CODE IN ('RD', 'UNN') AND SILV_POLYGON_NUMBER NOT IN ('landing', 'lnd') AND GEOMETRY_EXIST_IND = 'Y'",
         "columns":
             [
@@ -38,21 +36,18 @@
     },
     {
         "dataset": "whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp",
-        "name": "whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp",
         "query": null,
         "columns": null,
         "promote_to_multi": true
     },
     {
         "dataset": "whse_mineral_tenure.og_road_segment_permit_sp",
-        "name": "whse_mineral_tenure.og_road_segment_permit_sp",
         "query": null,
         "columns": null,
         "promote_to_multi": true
     },
     {
         "dataset": "whse_mineral_tenure.og_road_area_permit_sp",
-        "name": "whse_mineral_tenure.og_road_area_permit_sp",
         "query": null,
         "columns": null,
         "promote_to_multi": true
