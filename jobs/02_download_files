@@ -33,6 +33,13 @@ ogr2ogr \
   /tmp/transport_line.gdb \
   TRANSPORT_LINE
 
+# get tiles and overlay
+bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
+  ogr2ogr -f Parquet \
+    -sql "select substr(map_tile, 1, 4) as map_tile_250 from \"\"" \
+    whse_basemapping.bcgs_20k_grid.parquet \
+    /vsistdin/
+
 python scripts/intersect.py \
   tmp/whse_basemapping.transport_line.parquet \
   whse_basemapping.bcgs_20k_grid.parquet \
