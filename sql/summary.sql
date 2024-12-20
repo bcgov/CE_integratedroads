@@ -1,6 +1,6 @@
 WITH source_priority AS (
   SELECT * FROM (VALUES
-  (1,'whse_basemapping.transport_line'),
+  (1,'whse_basemapping.dra_dgtl_road_atlas_mpar_sp'),
   (2,'whse_forest_tenure.ften_road_section_lines_svw'),
   (3,'whse_forest_vegetation.rslt_forest_cover_inv_svw'),
   (4,'whse_forest_tenure.abr_road_section_line'),
