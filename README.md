@@ -27,12 +27,7 @@ See [metadata](metadata.md).
 
 ### Requirements 
 
-- bash/zip/unzip/parallel (see Dockerfile)
-- PostgreSQL >= 14
-- PostGIS >= 3.3
-- GDAL >= 3.8
-- Python >= 3.9
-- [bcdata](https://github.com/smnorris/bcdata) >= 0.10.2
+See Dockerfile
 
 ### Setup
 
@@ -41,14 +36,14 @@ Clone the repository, navigate to the project folder:
         git clone https://github.com/bcgov/CE_integratedroads.git
         cd CE_integratedroads
 
-If you do not have above noted requirements installed on your system (via apt / conda / brew etc), consider using Docker. To build and start the containers:
+If you do not have the requirements noted in the Dockerfile installed to your system (via apt / conda / brew etc), consider using Docker. To build and start the containers:
 
-        docker-compose build
-        docker-compose up -d
+        docker compose build
+        docker compose up -d
 
 As long as you do not remove the container `roadintegrator-db`, it will retain all the data you put in it. If you have shut down Docker or the container, start it up again with this command:
 
-        docker-compose up -d
+        docker compose up -d
 
 ### Usage
 
@@ -58,8 +53,8 @@ Call scripts in the `/jobs` folder in order as needed. Or run the full job:
 
 or with docker:
 
-        docker-compose run --rm app ce_integratedroads.sh
+        docker compose run --rm runner ce_integratedroads.sh
 
-Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml`:
+Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml` / `.env`:
 
-        psql postgresql://postgres:postgres@localhost:8001/postgres
+        psql postgresql://postgres:postgres@localhost:$DB_PORT/postgres
