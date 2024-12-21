@@ -33,18 +33,12 @@ ogr2ogr \
   /tmp/transport_line.gdb \
   TRANSPORT_LINE
 
-# get tiles and overlay
-bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
-  ogr2ogr -f Parquet \
-    -sql "select substr(map_tile, 1, 4) as map_tile_250 from \"\"" \
-    whse_basemapping.bcgs_20k_grid.parquet \
-    /vsistdin/
-
+# presume tiles are already present on s3
 python scripts/intersect.py \
   tmp/whse_basemapping.transport_line.parquet \
-  whse_basemapping.bcgs_20k_grid.parquet \
+  s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
   s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
-  --sort_by map_tile_250
+  --sort_by map_tile
 
 # dump dra code tables to csv and send to s3 vis awscli
 ogr2ogr \
