@@ -11,6 +11,7 @@ RUN apt-get update && \
     apt-get -qq install -y --no-install-recommends zip && \
     apt-get -qq install -y --no-install-recommends unzip && \
     apt-get -qq install -y --no-install-recommends jq && \
+    apt-get -qq install -y --no-install-recommends parallel && \
     apt-get -qq install -y --no-install-recommends postgresql-client && \
     apt-get -qq install -y --no-install-recommends python3-pip && \
     apt-get -qq install -y --no-install-recommends python3-dev && \
