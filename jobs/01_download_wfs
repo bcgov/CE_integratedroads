@@ -12,7 +12,7 @@ bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
       /vsistdin/
 
 # download WFS datasets to parquet
-python scripts/bc2parquet.py bcdata.json
+python scripts/bc2parquet.py bcdata.json -v
 
 # overlay each source with tiles, write to S3
 jq -c '.[]' bcdata.json | while read item; do
