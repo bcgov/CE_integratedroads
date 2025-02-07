@@ -3,7 +3,7 @@ RETURNS geometry LANGUAGE plpgsql
 AS $$
 BEGIN
     BEGIN
-        RETURN ST_ApproximateMedialAxis(arg);
+        RETURN CG_ApproximateMedialAxis(arg);
     EXCEPTION WHEN OTHERS THEN
         RETURN null;
     end;
