@@ -7,7 +7,7 @@ set -euxo pipefail
 
 bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
     ogr2ogr -f Parquet \
-      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from \"\"" \
+      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from OGRGeoJSON" \
       /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
       /vsistdin/
 
