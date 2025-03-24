@@ -32,6 +32,7 @@ services:
       - AWS_VIRTUAL_HOSTING=${AWS_VIRTUAL_HOSTING}
       - AWS_EC2_METADATA_DISABLED=${AWS_EC2_METADATA_DISABLED}
       - CPL_VSISTDIN_BUFFER_LIMIT=${CPL_VSISTDIN_BUFFER_LIMIT}
+      - DRAPWD=${DRAPWD}
     depends_on:
       db:
         condition: service_healthy

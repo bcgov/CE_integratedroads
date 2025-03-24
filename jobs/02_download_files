@@ -13,15 +13,15 @@ mkdir -p tmp
 # We use the non-public copy DRA because the public dataset's schema does not match
 # the schema used in these queries. Below extracts only the public portion of the data
 curl \
-  -o /tmp/transport_line.gdb.zip \
+  -o tmp/transport_line.gdb.zip \
   https://nrs.objectstore.gov.bc.ca/itqlyp/GBA/PROVINCE/transport_line.gdb.zip
 
 # extract password protected zipfile
 unzip \
   -P $DRAPWD \
-  -d /tmp \
+  -d tmp \
   -o \
-  /tmp/transport_line.gdb.zip
+  tmp/transport_line.gdb.zip
 
 ogr2ogr \
   -f Parquet \
@@ -30,7 +30,7 @@ ogr2ogr \
   -unsetFid \
   -dim XY \
   -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
-  /tmp/transport_line.gdb \
+  tmp/transport_line.gdb \
   TRANSPORT_LINE
 
 # presume tiles are already present on s3
@@ -44,19 +44,19 @@ python scripts/intersect.py \
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_structure_code.csv \
-  /tmp/transport_line.gdb \
+  tmp/transport_line.gdb \
   TRANSPORT_LINE_STRUCTURE_CODE
 
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_type_code.csv \
-  /tmp/transport_line.gdb \
+  tmp/transport_line.gdb \
   TRANSPORT_LINE_TYPE_CODE
 
 ogr2ogr \
   -f CSV \
   tmp/whse_basemapping.transport_line_surface_code.csv \
-  /tmp/transport_line.gdb \
+  tmp/transport_line.gdb \
   TRANSPORT_LINE_SURFACE_CODE
 
 aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$OBJECTSTORE_BUCKET
