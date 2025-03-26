@@ -5,9 +5,14 @@ set -euxo pipefail
 # Download BC WFS datasets to file
 # ----
 
+# Note the peculiar layer name:
+# I have no notes on how this was determined... if the dump is piped to ogrinfo /vsistdin/
+# the layer name shown is OGRGeoJSON - and is required when running this command
+# locally. But the empty layer name works with the docker image (that has a
+# more or less equivalent gdal version) while 'from OGRGeoJSON' does not.
 bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
     ogr2ogr -f Parquet \
-      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from OGRGeoJSON" \
+      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from \"\""  \
       /vsis3/$BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
       /vsistdin/
 
