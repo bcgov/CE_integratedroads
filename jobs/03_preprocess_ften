@@ -14,7 +14,7 @@ ogr2ogr \
   -overwrite \
   -nln whse_forest_tenure.ften_road_section_lines_svw \
   -nlt PROMOTE_TO_MULTI \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
+  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   whse_forest_tenure.ften_road_section_lines_svw
 
 $PSQL -c "DROP TABLE IF EXISTS ften_distinct_geom"
