@@ -8,7 +8,7 @@ set -euxo pipefail
 bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
     ogr2ogr -f Parquet \
       -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from OGRGeoJSON" \
-      /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
+      /vsis3/$BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
       /vsistdin/
 
 # download WFS datasets to parquet
@@ -21,8 +21,8 @@ jq -c '.[]' bcdata.json | while read item; do
     # overlay with tiles, sort by tile id, write to s3
     python scripts/intersect.py \
         $SOURCE.parquet \
-        s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
-        s3://$OBJECTSTORE_BUCKET/$SOURCE.parquet \
+        s3://$BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
+        s3://$BUCKET/$SOURCE.parquet \
         --sort_by map_tile
 
 done

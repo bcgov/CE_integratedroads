@@ -36,8 +36,8 @@ ogr2ogr \
 # presume tiles are already present on s3
 python scripts/intersect.py \
   tmp/whse_basemapping.transport_line.parquet \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
-  s3://$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
+  s3://$BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
+  s3://$BUCKET/whse_basemapping.transport_line.parquet \
   --sort_by map_tile
 
 # dump dra code tables to csv and send to s3 vis awscli
@@ -59,6 +59,6 @@ ogr2ogr \
   tmp/transport_line.gdb \
   TRANSPORT_LINE_SURFACE_CODE
 
-aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$OBJECTSTORE_BUCKET
-aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$OBJECTSTORE_BUCKET
-aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$OBJECTSTORE_BUCKET
+aws s3 cp tmp/whse_basemapping.transport_line_structure_code.csv s3://$BUCKET
+aws s3 cp tmp/whse_basemapping.transport_line_type_code.csv s3://$BUCKET
+aws s3 cp tmp/whse_basemapping.transport_line_surface_code.csv s3://$BUCKET

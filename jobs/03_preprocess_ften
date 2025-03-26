@@ -54,6 +54,6 @@ $PSQL -tXA \
 # dump to file
 ogr2ogr \
   -f Parquet \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
   PG:$DATABASE_URL \
   -sql "select *, substring(map_tile for 4) as map_tile_250 from ften_cleaned order by substring(map_tile for 4)"

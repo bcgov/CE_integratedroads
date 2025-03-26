@@ -14,7 +14,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select og_road_area_permit_id,map_tile \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
+  /vsis3/$BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 
 $PSQL -c "DROP TABLE IF EXISTS og_permits_row"
@@ -38,6 +38,6 @@ $PSQL -tXA \
 # dump to file
 ogr2ogr \
   -f Parquet \
-  /vsis3/$OBJECTSTORE_BUCKET/og_permits_row.parquet \
+  /vsis3/$BUCKET/og_permits_row.parquet \
   PG:$DATABASE_URL \
   -sql "select *, substring(map_tile for 4) as map_tile_250 from og_permits_row order by substring(map_tile for 4)"
