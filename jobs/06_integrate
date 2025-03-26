@@ -18,7 +18,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line.parquet \
+  /vsis3/$BUCKET/whse_basemapping.transport_line.parquet \
   whse_basemapping.transport_line
 $PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"
 $PSQL -c "create index on whse_basemapping.transport_line (map_tile)"
@@ -31,7 +31,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
   whse_forest_tenure.ften_road_section_lines_svw_cleaned
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_tile)"
@@ -67,7 +67,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/results.parquet \
+  /vsis3/$BUCKET/results.parquet \
   results
 
 ogr2ogr \
@@ -78,7 +78,7 @@ ogr2ogr \
   -nlt PROMOTE_TO_MULTI \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
+  /vsis3/$BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
 $PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (forest_cover_id)"
 $PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (map_tile)"
@@ -91,7 +91,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
+  /vsis3/$BUCKET/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
   whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
 $PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (og_petrlm_dev_rd_pre06_pub_id)"
 $PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (map_tile)"
@@ -103,7 +103,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
+  /vsis3/$BUCKET/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
   whse_mineral_tenure.og_road_segment_permit_sp
 $PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (og_road_segment_permit_id)"
 $PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (map_tile)"
@@ -115,7 +115,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/og_permits_row.parquet \
+  /vsis3/$BUCKET/og_permits_row.parquet \
   og_permits_row
 
 # ogc polygons
@@ -126,7 +126,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -where "map_tile_250 = '$1'" \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
+  /vsis3/$BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 $PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
 $PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (map_tile)"
@@ -171,7 +171,7 @@ ogr2ogr \
   -update \
   -append \
   -nln whse_basemapping.transport_line_type_code \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_type_code.csv \
+  /vsis3/$BUCKET/whse_basemapping.transport_line_type_code.csv \
   whse_basemapping.transport_line_type_code
 ogr2ogr \
   -f PostgreSQL \
@@ -179,7 +179,7 @@ ogr2ogr \
   -update \
   -append \
   -nln whse_basemapping.transport_line_surface_code \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_surface_code.csv \
+  /vsis3/$BUCKET/whse_basemapping.transport_line_surface_code.csv \
   whse_basemapping.transport_line_surface_code
 ogr2ogr \
   -f PostgreSQL \
@@ -187,7 +187,7 @@ ogr2ogr \
   -update \
   -append \
   -nln whse_basemapping.transport_line_structure_code \
-  /vsis3/$OBJECTSTORE_BUCKET/whse_basemapping.transport_line_structure_code.csv \
+  /vsis3/$BUCKET/whse_basemapping.transport_line_structure_code.csv \
   whse_basemapping.transport_line_structure_code
 
 # ----------
@@ -285,7 +285,7 @@ $PSQL -f sql/integratedroads_2.sql  # note all sources associated with an output
 $PSQL -f sql/integratedroads.sql    # create output table
 
 # remove file if it already exists
-aws s3 rm s3://$OBJECTSTORE_BUCKET/integratedroads_$1.parquet
+aws s3 rm s3://$BUCKET/integratedroads_$1.parquet
 
 # dump to file
 ogr2ogr \
@@ -293,7 +293,7 @@ ogr2ogr \
   -nlt LINESTRING \
   -nln integratedroads \
   -sql "SELECT * FROM integratedroads" \
-  /vsis3/$OBJECTSTORE_BUCKET/integratedroads_$1.parquet \
+  /vsis3/$BUCKET/integratedroads_$1.parquet \
   "PG:$DATABASE_URL"
 
 #$PSQL --csv -f sql/summary.sql > summary.csv
@@ -314,4 +314,4 @@ ogr2ogr \
 #GROUP BY bcgw_source, to_char(CURRENT_DATE, 'YYYY-MM-DD'), total_length \
 #ORDER BY bcgw_source" > bcgw_source_summary.csv
 
-#aws s3 cp bcgw_source_summary.csv s3://$OBJECTSTORE_BUCKET
+#aws s3 cp bcgw_source_summary.csv s3://$BUCKET
