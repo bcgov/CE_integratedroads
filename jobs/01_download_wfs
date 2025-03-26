@@ -5,9 +5,9 @@ set -euxo pipefail
 # Download BC WFS datasets to file
 # ----
 
-# Note the empty layer name:
+# Note the empty layer name in the vsistdin geojson:
 
-# bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid | ogrinfo /vsistdin/
+# $ bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid | ogrinfo /vsistdin/
 
 # gdal 3.10.0 on docker image:
 #INFO: Open of `/vsistdin/'
