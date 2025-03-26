@@ -38,6 +38,9 @@ def intersect(dataset_a, dataset_b, out_file, sort_by, verbose, quiet):
             raise ValueError(f"Sort column {sort_by} not found in sources")
         overlay = overlay.sort_values(sort_by)
     click.echo(f"Writing overlay to {out_file}")
+    # note that if there are no rows in resulting overlay, an empty file will
+    # be written (as expected) - but empty files do not retain all columns.
+    # This seems to be a geopandas/to_parquet issue
     overlay.to_parquet(out_file, index=False)
 
 
