@@ -1,5 +1,8 @@
 -- -----------------------
--- clean active FTEN roads slightly, snapping endpoints and re-noding
+-- clean FTEN roads slightly
+  -- snap endpoints
+  -- de-duplicate
+  -- re-node
 -- -----------------------
 
 WITH src AS (
@@ -88,6 +91,7 @@ snapped AS
     a.id,
     a.map_label,
     a.map_tile,
+    a.life_cycle_status_code,
     CASE
       WHEN s.id IS NOT NULL AND e.id IS NULL                        -- snap just start
       THEN ST_Setpoint(a.geom, 0, s.geom)
@@ -100,10 +104,21 @@ snapped AS
   FROM src a
   LEFT JOIN start_snapped s ON a.id = s.id
   LEFT JOIN end_snapped e ON a.id = e.id
-),
+)
+
+-- save the geoms so we can tell which are duplicates (before re-noding)
+-- by writing map label in order of life_cycle_status_code the active tenures take priority
+INSERT INTO ften_distinct_geom (map_label, map_tile, geom)
+select
+  array_agg(map_label order by life_cycle_status_code desc) as map_label,
+  map_tile,
+  st_snaptogrid(geom, .001) as geom
+from snapped
+group by map_tile, st_snaptogrid(geom, .001);
+
 
 -- node the linework
-noded AS
+WITH noded AS
 (
   SELECT
     row_number() over() as id,
@@ -111,7 +126,7 @@ noded AS
   FROM (
     SELECT
       (st_dump(st_node(st_union(geom)))).geom as geom
-    FROM snapped
+    FROM ften_distinct_geom
     ) AS f
 ),
 
@@ -121,10 +136,10 @@ noded_attrib AS
   SELECT DISTINCT ON (n.id)
     n.id,
     t.map_tile,
-    t.map_label,
+    t.map_label[1],  -- retain only the first map label in event of duplicate geoms
     n.geom
   FROM noded n
-  INNER JOIN snapped t
+  INNER JOIN ften_distinct_geom t
   ON ST_Intersects(n.geom, t.geom)
   ORDER BY n.id, ST_Length(ST_Intersection(n.geom, t.geom)) DESC
 )
@@ -144,7 +159,7 @@ INSERT INTO ften_cleaned (
   map_tile,
   geom
 )
-SELECT
+SELECT DISTINCT
   s.forest_file_id,
   s.road_section_id,
   s.file_status_code,
@@ -159,4 +174,4 @@ SELECT
   n.map_tile,
   n.geom
 FROM noded_attrib n
-inner join src s on n.map_label = s.map_label;
+inner join whse_forest_tenure.ften_road_section_lines_svw s on n.map_label = s.map_label;

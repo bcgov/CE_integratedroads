@@ -1,7 +1,7 @@
 -- output table
 
-DROP TABLE IF EXISTS ften_distinct CASCADE;
-CREATE TABLE ften_distinct AS
+DROP TABLE IF EXISTS ften_distinct_attrib CASCADE;
+CREATE TABLE ften_distinct_attrib AS
 SELECT DISTINCT
   map_label,
   forest_file_id,
@@ -16,7 +16,7 @@ SELECT DISTINCT
   client_name
 FROM whse_forest_tenure.ften_road_section_lines_svw
 ORDER BY map_label;
-CREATE INDEX ON ften_distinct (map_label);
+CREATE INDEX ON ften_distinct_attrib (map_label);
 
 DROP TABLE IF EXISTS road_attr_src_list CASCADE;
 CREATE TABLE road_attr_src_list AS
@@ -30,7 +30,7 @@ SELECT DISTINCT ON (integratedroads_id)
   CASE WHEN s.og_road_segment_permit_id IS NOT NULL THEN 6 ELSE NULL END as s6,
   CASE WHEN s.og_road_area_permit_id IS NOT NULL THEN 7 ELSE NULL END as s7
 FROM integratedroads_2 s
-LEFT OUTER JOIN ften_distinct ften ON s.map_label = ften.map_label
+LEFT OUTER JOIN ften_distinct_attrib ften ON s.map_label = ften.map_label
 ORDER BY s.integratedroads_id, ften.map_label;
 CREATE INDEX ON road_attr_src_list (integratedroads_id);
 
@@ -121,7 +121,7 @@ LEFT OUTER JOIN whse_basemapping.transport_line_type_code dra_type
   ON dra.transport_line_type_code = dra_type.transport_line_type_code
 LEFT OUTER JOIN whse_basemapping.transport_line_surface_code dra_surf
   ON dra.transport_line_surface_code = dra_surf.transport_line_surface_code
-LEFT OUTER JOIN ften_distinct ften
+LEFT OUTER JOIN ften_distinct_attrib ften
   ON s.map_label = ften.map_label
 LEFT OUTER JOIN whse_forest_vegetation.rslt_forest_cover_inv_svw results
   ON s.forest_cover_id = results.forest_cover_id

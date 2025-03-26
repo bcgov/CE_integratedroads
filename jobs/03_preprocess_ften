@@ -17,10 +17,19 @@ ogr2ogr \
   /vsis3/$OBJECTSTORE_BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   whse_forest_tenure.ften_road_section_lines_svw
 
+$PSQL -c "DROP TABLE IF EXISTS ften_distinct_geom"
+
+$PSQL -c "CREATE TABLE ften_distinct_geom (
+  map_label text[],
+  map_tile text,
+  geom geometry(Linestring, 3005)
+);"
+$PSQL -c "CREATE INDEX ON ften_distinct_geom USING GIST (geom);"
+
 $PSQL -c "DROP TABLE IF EXISTS ften_cleaned"
 
 $PSQL -c "CREATE TABLE ften_cleaned (
-  ften_active_id serial primary key,
+  ften_cleaned_id serial primary key,
   forest_file_id text,
   road_section_id text,
   file_status_code text,
