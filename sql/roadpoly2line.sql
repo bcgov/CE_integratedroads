@@ -24,9 +24,10 @@
 
 -- to prevent edge-matching issues, use a spatial query to extract features from a
 -- slightly expanded tile (vs using the map_tile value in the road polys), and
--- aggregate any polygons that have been cut by tiling
+-- aggregate any polygons that have been cut by tiling. Also, reduce precision while we are at it
 WITH tile AS (
-  SELECT st_union(geom) as geom
+  SELECT
+     st_snaptogrid(st_union(geom), .001) as geom
   FROM (
     SELECT
       (ST_Dump(r.geom)).geom as geom
