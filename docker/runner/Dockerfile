@@ -25,6 +25,7 @@ RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/python -m pip install -U pip && \
     /opt/venv/bin/python -m pip install --no-cache-dir --upgrade numpy && \
     /opt/venv/bin/python -m pip install --no-cache-dir pyarrow && \
+    /opt/venv/bin/python -m pip install --no-cache-dir fsspec && \
     /opt/venv/bin/python -m pip install --no-cache-dir bcdata==0.15.0
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.22.21.zip" -o "awscliv2.zip" \
