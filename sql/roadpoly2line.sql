@@ -22,12 +22,19 @@
 -- out the processing but is very slow - this is the bottleneck in this process.
 -- ---------------
 
--- extract features from tile
+-- to prevent edge-matching issues, use a spatial query to extract features from a
+-- slightly expanded tile (vs using the map_tile value in the road polys), and
+-- aggregate any polygons that have been cut by tiling
 WITH tile AS (
-  SELECT
-    (ST_Dump(geom)).geom as geom
-  FROM :in_table
-  WHERE map_tile = :'tile'
+  SELECT st_union(geom) as geom
+  FROM (
+    SELECT
+      (ST_Dump(r.geom)).geom as geom
+    FROM :in_table r
+    INNER JOIN whse_basemapping.bcgs_20k_grid t
+    ON ST_Intersects(r.geom, st_buffer(t.geom, 20))
+    WHERE t.map_tile = :'tile'
+  ) as t
 ),
 
 -- clean the geometries
