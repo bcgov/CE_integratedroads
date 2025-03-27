@@ -17,6 +17,8 @@ ogr2ogr \
   /vsis3/$BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
 
+$PSQL -c "SELECT COUNT(*) FROM whse_forest_vegetation.rslt_forest_cover_inv_svw"
+
 $PSQL -c "DROP TABLE IF EXISTS results"
 
 $PSQL -c "CREATE TABLE results (
