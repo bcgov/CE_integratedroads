@@ -27,7 +27,7 @@ See [metadata](metadata.md).
 
 ### Requirements 
 
-See Dockerfile
+Docker
 
 ### Setup
 
@@ -36,25 +36,38 @@ Clone the repository, navigate to the project folder:
         git clone https://github.com/bcgov/CE_integratedroads.git
         cd CE_integratedroads
 
-If you do not have the requirements noted in the Dockerfile installed to your system (via apt / conda / brew etc), consider using Docker. To build and start the containers:
+To build and start the containers:
 
         docker compose build
         docker compose up -d
 
-As long as you do not remove the container `roadintegrator-db`, it will retain all the data you put in it. If you have shut down Docker or the container, start it up again with this command:
+As long as you do not remove the container `roadintegrator-db` or the `postgres-data` folder, all data added will be retained.
+If you have shut down Docker or the container, re-start it the same command:
 
         docker compose up -d
 
+**Platform notes**
+
+The provided Docker configuration files assume that pre-built postgis images are not availalable for the development platform (ie arm64/apple silicon), and the `docker compose build` process uses files in `docker/db` to build a postgis enabled postgres database image. [`docker/db/Dockerfile`](docer/db/Dockerfile) requires updating as postgres/postgis upgrades become available. See the [source files](https://github.com/postgis/docker-postgis) for updated references, and remember to keep the db version synced with the db version used in the Github Actions yaml files. If pre-built images are available for your platform, modify `docker-compose.yml` to use them instead.
+
 ### Usage
 
-Call scripts in the `/jobs` folder in order as needed. Or run the full job:
+Call scripts in the `/jobs` folder in order as needed:
 
-        ./ce_integratedroads.sh
+        docker compose run --rm runner 01_download_wfs
+        docker compose run --rm runner 02_download_files
 
-or with docker:
+or run the entire job:
 
         docker compose run --rm runner ce_integratedroads.sh
 
 Note that connecting to the dockerized database from your local OS is possible via the port specified in `docker-compose.yml` / `.env`:
 
         psql postgresql://postgres:postgres@localhost:$DB_PORT/postgres
+
+And a script can often be debugged by dropping in to a bash session on the container:
+
+        $ docker compose run -it --rm runner bash
+        [+] Creating 1/0
+         ✔ Container ce_integratedroads_db  Running                                                                                                                      0.0s
+        root@094dd23d6d25:/home/ce_integratedroads#
