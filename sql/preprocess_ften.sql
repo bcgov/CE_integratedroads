@@ -1,5 +1,13 @@
 -- -----------------------
--- clean active FTEN roads slightly, snapping endpoints and re-noding
+-- Clean FTEN roads slightly
+-- - snap endpoints
+-- - reduce precision to .001
+-- - remove duplicate geometries (with same life cycle status code)
+-- - re-node (break at intersections)
+--
+-- Note that active and retired records are processed separately to avoid
+-- re-noding along duplicate geoms. Any de-duplication between active/retired
+-- geometries is taken care of by the integration process)
 -- -----------------------
 
 WITH src AS (
@@ -21,6 +29,7 @@ WITH src AS (
       (ST_Dump(geom)).geom as geom
     FROM whse_forest_tenure.ften_road_section_lines_svw r
     WHERE map_tile = :'tile'
+    AND life_cycle_status_code = :'status'
     ) as f
 ),
 
@@ -102,16 +111,30 @@ snapped AS
   LEFT JOIN end_snapped e ON a.id = e.id
 ),
 
+-- drop duplicates at .001m precision
+distinct_geom AS (
+  select
+    count(*) as n,
+    map_tile,
+    array_agg(map_label) as map_label,
+    st_snaptogrid(geom, .001) as geom
+  from snapped
+  group by st_snaptogrid(geom, .001), map_tile
+),
+
 -- node the linework
 noded AS
 (
   SELECT
     row_number() over() as id,
+    n,
     geom
   FROM (
     SELECT
+      n,
       (st_dump(st_node(st_union(geom)))).geom as geom
-    FROM snapped
+    FROM distinct_geom
+    GROUP BY n
     ) AS f
 ),
 
@@ -121,10 +144,13 @@ noded_attrib AS
   SELECT DISTINCT ON (n.id)
     n.id,
     t.map_tile,
-    t.map_label,
+    case
+      when n.n = 1 then t.map_label[1]
+      else 'MULTIPLE'
+    end as map_label,
     n.geom
   FROM noded n
-  INNER JOIN snapped t
+  INNER JOIN distinct_geom t
   ON ST_Intersects(n.geom, t.geom)
   ORDER BY n.id, ST_Length(ST_Intersection(n.geom, t.geom)) DESC
 )
@@ -145,8 +171,8 @@ INSERT INTO ften_cleaned (
   geom
 )
 SELECT
-  s.forest_file_id,
-  s.road_section_id,
+  COALESCE(s.forest_file_id, 'MULTIPLE') as forest_file_id,
+  COALESCE(s.road_section_id, 'MULTIPLE') as road_section_id,
   s.file_status_code,
   s.file_type_code,
   s.file_type_description,
@@ -159,4 +185,4 @@ SELECT
   n.map_tile,
   n.geom
 FROM noded_attrib n
-inner join src s on n.map_label = s.map_label;
+left outer join src s on n.map_label = s.map_label;
