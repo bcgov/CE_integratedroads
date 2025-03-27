@@ -34,7 +34,7 @@ jobs:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
       postgres:
-        image: postgis/postgis:16-3.4
+        image: postgis/postgis:16-3.5
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
