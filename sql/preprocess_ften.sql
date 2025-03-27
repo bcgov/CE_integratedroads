@@ -138,21 +138,47 @@ noded AS
     ) AS f
 ),
 
--- get the attributes back
+-- get the map_label back via spatial query
 noded_attrib AS
 (
   SELECT DISTINCT ON (n.id)
     n.id,
     t.map_tile,
-    case
-      when n.n = 1 then t.map_label[1]
-      else 'MULTIPLE'
-    end as map_label,
+    t.map_label,
     n.geom
   FROM noded n
   INNER JOIN distinct_geom t
   ON ST_Intersects(n.geom, t.geom)
   ORDER BY n.id, ST_Length(ST_Intersection(n.geom, t.geom)) DESC
+),
+
+-- unnest the map label
+unnested AS (
+  SELECT
+    map_tile,
+    unnest(map_label) as map_label,
+    geom
+  FROM noded_attrib
+),
+
+-- get distinct records
+unique_recs as (
+  SELECT DISTINCT
+    s.forest_file_id,
+    s.road_section_id,
+    s.file_status_code,
+    s.file_type_code,
+    s.file_type_description,
+    s.life_cycle_status_code,
+    s.award_date,
+    s.retirement_date,
+    s.client_number,
+    s.client_name,
+    n.map_label,
+    n.map_tile,
+    n.geom
+  FROM unnested n
+  left outer join src s on n.map_label = s.map_label
 )
 
 INSERT INTO ften_cleaned (
@@ -170,19 +196,21 @@ INSERT INTO ften_cleaned (
   map_tile,
   geom
 )
+
 SELECT
-  COALESCE(s.forest_file_id, 'MULTIPLE') as forest_file_id,
-  COALESCE(s.road_section_id, 'MULTIPLE') as road_section_id,
-  s.file_status_code,
-  s.file_type_code,
-  s.file_type_description,
-  s.life_cycle_status_code,
-  s.award_date,
-  s.retirement_date,
-  s.client_number,
-  s.client_name,
-  n.map_label,
-  n.map_tile,
-  n.geom
-FROM noded_attrib n
-left outer join src s on n.map_label = s.map_label;
+  array_to_string(array_agg(forest_file_id), ';') as forest_file_id,
+  array_to_string(array_agg(road_section_id), ';') as road_section_id,
+  array_to_string(array_agg(file_status_code), ';') as file_status_code,
+  array_to_string(array_agg(file_type_code), ';') as file_type_code,
+  array_to_string(array_agg(file_type_description), ';') as file_type_description,
+  array_to_string(array_agg(life_cycle_status_code), ';') as life_cycle_status_code,
+  array_to_string(array_agg(award_date), ';') as award_date,
+  array_to_string(array_agg(retirement_date), ';') as retirement_date,
+  array_to_string(array_agg(client_number), ';') as client_number,
+  array_to_string(array_agg(client_name), ';') as client_name,
+  array_to_string(array_agg(map_label), ';') as map_label,
+  map_tile,
+  geom
+FROM unique_recs
+GROUP BY map_tile, geom
+
