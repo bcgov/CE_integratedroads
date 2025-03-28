@@ -134,6 +134,7 @@ noded AS
       n,
       (st_dump(st_node(st_union(geom)))).geom as geom
     FROM distinct_geom
+    WHERE st_length(geom) > .001  -- filter out any zero length / empty geometries
     GROUP BY n
     ) AS f
 ),
