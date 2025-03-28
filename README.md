@@ -23,6 +23,11 @@ All processing is done via a [manually triggered Github Actions workflow](https:
 
 See [metadata](metadata.md).
 
+## Processing
+
+All processing is done via Github Actions. To run the job, navigate to the [Actions tab](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml) and press the `Run workflow` button. A fresh extract should be availalbe on NRS object storage after about 1.5hrs.
+
+
 ## Development and testing 
 
 ### Requirements 
