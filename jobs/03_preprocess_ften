@@ -39,14 +39,16 @@ $PSQL -c "CREATE TABLE ften_cleaned (
 $PSQL -tXA \
   -c "SELECT DISTINCT map_tile
       FROM whse_forest_tenure.ften_road_section_lines_svw
+      WHERE life_cycle_status_code = 'ACTIVE'
       ORDER BY map_tile" \
-  | parallel --tag $PSQL -f sql/preprocess_ften.sql -v tile={1} -v status=ACTIVE
+  | parallel --jobs 2 --tag $PSQL -f sql/preprocess_ften.sql -v tile={1} -v status=ACTIVE
 
 $PSQL -tXA \
   -c "SELECT DISTINCT map_tile
       FROM whse_forest_tenure.ften_road_section_lines_svw
+      WHERE life_cycle_status_code = 'RETIRED'
       ORDER BY map_tile" \
-  | parallel --tag $PSQL -f sql/preprocess_ften.sql -v tile={1} -v status=RETIRED
+  | parallel --jobs 2 --tag $PSQL -f sql/preprocess_ften.sql -v tile={1} -v status=RETIRED
 
 # dump to file
 ogr2ogr \
