@@ -41,14 +41,14 @@ To build and start the containers:
         docker compose build
         docker compose up -d
 
-As long as you do not remove the container `roadintegrator-db` or the `postgres-data` folder, all data added will be retained.
-If you have shut down Docker or the container, re-start it the same command:
+Postgresql data is stored in the local `postgres-data` folder.
+If you have shut down Docker or the container, re-start it the same command and all data loaded to the db will still be available.
 
         docker compose up -d
 
 **Platform notes**
 
-The provided Docker configuration files assume that pre-built postgis images are not availalable for the development platform (ie arm64/apple silicon), and the `docker compose build` process uses files in `docker/db` to build a postgis enabled postgres database image. [`docker/db/Dockerfile`](docer/db/Dockerfile) requires updating as postgres/postgis upgrades become available. See the [source files](https://github.com/postgis/docker-postgis) for updated references, and remember to keep the db version synced with the db version used in the Github Actions yaml files. If pre-built images are available for your platform, modify `docker-compose.yml` to use them instead.
+The provided Docker configuration files assume that pre-built postgis images are not availalable for the development platform (ie arm64/apple silicon) - the `docker compose build` process uses files in `docker/db` to build a postgis enabled postgres database image. Therefore, [`docker/db/Dockerfile`](docer/db/Dockerfile) requires updating as postgres/postgis upgrades become available. See the [source files](https://github.com/postgis/docker-postgis) for updated references, and remember to keep the db version synced with the db version used in the Github Actions yaml files. If pre-built images are available for your platform, modify `docker-compose.yml` to use them instead.
 
 ### Usage
 
