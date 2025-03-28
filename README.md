@@ -4,8 +4,6 @@ Quickly merge various BC road data sources into a single layer for Cumulative Ef
 
 ## Method
 
-All processing is done via a [manually triggered Github Actions workflow](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml) (click on the `Run Workflow` button for the `ce-integratedroads` workflow to trigger a run).
-
 1. Source datasets are downloaded from file where possible
 2. Where source data are not avialable via file, download is via WFS, using queries defined in [bcdata.json](bcdata.json)
 3. Data are cut by BC 1:20k tile and written to Parquet files on S3 compatible object storage
@@ -19,13 +17,13 @@ All processing is done via a [manually triggered Github Actions workflow](https:
 6. Output (for a given 250k tile) is written to Parquet file on object storage
 7. When all tiles are complete, the resulting collection of Parquet files is consolidated into a single zipped file geodatabase on NRS object storage
 
+## Processing
+
+All processing is done via Github Actions. To run the job, navigate to the `ce-integratedroads` workflow in the [Actions tab](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml). Press the `Run workflow` button to trigger the job. A fresh extract should be availalbe on NRS object storage after about 2hrs.
+
 ## Output documentation
 
 See [metadata](metadata.md).
-
-## Processing
-
-All processing is done via Github Actions. To run the job, navigate to the [Actions tab](https://github.com/bcgov/CE_integratedroads/actions/workflows/ce-integratedroads.yaml) and press the `Run workflow` button. A fresh extract should be availalbe on NRS object storage after about 1.5hrs.
 
 
 ## Development and testing 
