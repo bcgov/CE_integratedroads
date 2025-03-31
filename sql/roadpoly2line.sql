@@ -27,15 +27,11 @@
 -- aggregate any polygons that have been cut by tiling. Also, reduce precision while we are at it
 WITH tile AS (
   SELECT
-     st_snaptogrid(st_union(geom), .001) as geom
-  FROM (
-    SELECT
-      (ST_Dump(r.geom)).geom as geom
-    FROM :in_table r
-    INNER JOIN whse_basemapping.bcgs_20k_grid t
-    ON ST_Intersects(r.geom, st_buffer(t.geom, 20))
-    WHERE t.map_tile = :'tile'
-  ) as t
+    st_snaptogrid((ST_Dump(r.geom)).geom, .001) as geom
+  FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r
+  INNER JOIN whse_basemapping.bcgs_20k_grid t
+  ON ST_Intersects(r.geom, st_buffer(t.geom, 20))
+  WHERE t.map_tile = :'tile'
 ),
 
 -- clean the geometries
