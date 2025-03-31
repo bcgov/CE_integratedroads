@@ -28,7 +28,7 @@
 WITH tile AS (
   SELECT
     st_snaptogrid((ST_Dump(r.geom)).geom, .001) as geom
-  FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r
+  FROM :in_table r
   INNER JOIN whse_basemapping.bcgs_20k_grid t
   ON ST_Intersects(r.geom, st_buffer(t.geom, 20))
   WHERE t.map_tile = :'tile'
