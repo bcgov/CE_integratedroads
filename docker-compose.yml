@@ -1,8 +1,8 @@
 services:
   db:
     build:
-      context: docker/db
-    container_name: ce_integratedroads_db
+      context: https://github.com/postgis/docker-postgis.git#master:16-3.5
+    container_name: ce_integratedroads-db
     ports:
       - ${DB_PORT}:5432
     volumes:
@@ -17,8 +17,9 @@ services:
       - POSTGRES_PASSWORD=postgres
       - PG_DATABASE=postgres
   runner:
-    build: 
-      context: docker/runner
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
     container_name: ce_integratedroads-runner
     volumes:
       - "./:/home/ce_integratedroads"
@@ -31,6 +32,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_VIRTUAL_HOSTING=${AWS_VIRTUAL_HOSTING}
       - AWS_EC2_METADATA_DISABLED=${AWS_EC2_METADATA_DISABLED}
+      - AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+      - AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
       - CPL_VSISTDIN_BUFFER_LIMIT=${CPL_VSISTDIN_BUFFER_LIMIT}
       - DRAPWD=${DRAPWD}
     depends_on:

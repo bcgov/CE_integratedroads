@@ -5,27 +5,13 @@ set -euxo pipefail
 # Download BC WFS datasets to file
 # ----
 
-# Note the empty layer name in the vsistdin geojson:
-
-# $ bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid | ogrinfo /vsistdin/
-
-# gdal 3.10.0 on docker image:
-#INFO: Open of `/vsistdin/'
-#      using driver `GeoJSON' successful.
-#1:  (Polygon)
-
-# gdal 3.10.2 on mac
-#INFO: Open of `/vsistdin/'
-#      using driver `GeoJSON' successful.
-#1: OGRGeoJSON (Polygon)
-
 bcdata dump -v --lowercase whse_basemapping.bcgs_20k_grid |
     ogr2ogr -f Parquet \
-      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from \"\""  \
+      -sql "select map_tile, substr(map_tile, 1, 4) as map_tile_250 from OGRGeoJSON"  \
       /vsis3/$BUCKET/whse_basemapping.bcgs_20k_grid.parquet \
       /vsistdin/
 
-# download WFS datasets to parquet
+# download WFS datasets, writing to local parquet files
 python scripts/bc2parquet.py bcdata.json -v
 
 # overlay each source with tiles, write to S3

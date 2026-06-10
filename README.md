@@ -57,8 +57,8 @@ The provided Docker configuration files assume that pre-built postgis images are
 
 Call scripts in the `/jobs` folder in order as needed:
 
-        docker compose run --rm runner 01_download_wfs
-        docker compose run --rm runner 02_download_files
+        docker compose run --rm runner jobs/01_download_wfs
+        docker compose run --rm runner jobs/02_download_files
 
 or run the entire job:
 

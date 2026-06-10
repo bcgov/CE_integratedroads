@@ -1,0 +1,4 @@
+bcdata==0.16.0
+fsspec
+psycopg2-binary
+pyarrow
