@@ -18,11 +18,11 @@ env:
 jobs:
   preprocess-ften:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     services:
       postgres:
-        image: postgis/postgis:16-3.5
+        image: ghcr.io/bcgov/ce_integratedroads-db:main
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -36,15 +36,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/00_setup_db
-          jobs/03_preprocess_ften
+          jobs/02_preprocess_ften
   preprocess-results:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     services:
       postgres:
-        image: postgis/postgis:16-3.5
+        image: ghcr.io/bcgov/ce_integratedroads-db:main
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -58,15 +57,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/00_setup_db
-          jobs/04_preprocess_results
+          jobs/03_preprocess_results
   preprocess-og-permits-row:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     services:
       postgres:
-        image: postgis/postgis:16-3.5
+        image: ghcr.io/bcgov/ce_integratedroads-db:main
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -80,5 +78,4 @@ jobs:
         uses: actions/checkout@v4
       - name: Preprocess
         run:  |
-          jobs/00_setup_db
-          jobs/05_preprocess_og_permits_row
+          jobs/04_preprocess_og_permits_row

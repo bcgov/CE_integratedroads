@@ -18,7 +18,7 @@ env:
 jobs:
   dump:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     steps:
       - name: Check out repository code

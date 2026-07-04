@@ -14,7 +14,7 @@ ogr2ogr \
   -overwrite \
   -nln whse_forest_tenure.ften_road_section_lines_svw \
   -nlt PROMOTE_TO_MULTI \
-  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw.parquet \
+  /vsis3/$BUCKET/sources/whse_forest_tenure.ften_road_section_lines_svw.parquet \
   whse_forest_tenure.ften_road_section_lines_svw
 
 $PSQL -c "DROP TABLE IF EXISTS ften_cleaned"
@@ -50,9 +50,16 @@ $PSQL -tXA \
       ORDER BY map_tile" \
   | parallel --tag $PSQL -f sql/preprocess_ften.sql -v tile={1} -v status=RETIRED
 
-# dump to file
+# dump to local file (required for indexing)
 ogr2ogr \
   -f Parquet \
-  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  /tmp/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
   PG:$DATABASE_URL \
-  -sql "select *, substring(map_tile for 4) as map_tile_250 from ften_cleaned order by substring(map_tile for 4)"
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
+  -sql "select * from ften_cleaned"
+
+# upload
+aws s3 cp /tmp/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  s3://$BUCKET/cleaned/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet 

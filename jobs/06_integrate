@@ -5,194 +5,9 @@ set -euxo pipefail
 # integrate the roads
 # ----
 
+tile=${1:-}
 PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 
-# load sources to db
-
-# DRA
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_basemapping.transport_line \
-  -nlt PROMOTE_TO_MULTI \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_basemapping.transport_line.parquet \
-  whse_basemapping.transport_line
-$PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"
-$PSQL -c "create index on whse_basemapping.transport_line (map_tile)"
-
-# ften
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_forest_tenure.ften_road_section_lines_svw \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
-  whse_forest_tenure.ften_road_section_lines_svw_cleaned
-$PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
-$PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_tile)"
-
-# create views of retired/active ften roads
-$PSQL -c "create view ften_active as (
-  select
-    row_number() over() as id,
-    life_cycle_status_code,
-    map_label,
-    map_tile,
-    geom
-  from whse_forest_tenure.ften_road_section_lines_svw
-  where life_cycle_status_code = 'ACTIVE'
-)"
-
-$PSQL -c "create view ften_retired as (
-  select
-    row_number() over() as id,
-    life_cycle_status_code,
-    map_label,
-    map_tile,
-    geom
-  from whse_forest_tenure.ften_road_section_lines_svw
-  where life_cycle_status_code = 'RETIRED'
-)"
-
-# results - both polys and lines are required
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln results \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/results.parquet \
-  results
-
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_forest_vegetation.rslt_forest_cover_inv_svw \
-  -lco GEOMETRY_NAME=geom \
-  -nlt PROMOTE_TO_MULTI \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
-  whse_forest_vegetation.rslt_forest_cover_inv_svw
-$PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (forest_cover_id)"
-$PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (map_tile)"
-
-# ogc linear features
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
-  whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
-$PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (og_petrlm_dev_rd_pre06_pub_id)"
-$PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (map_tile)"
-
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_mineral_tenure.og_road_segment_permit_sp \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
-  whse_mineral_tenure.og_road_segment_permit_sp
-$PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (og_road_segment_permit_id)"
-$PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (map_tile)"
-
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln og_permits_row \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/og_permits_row.parquet \
-  og_permits_row
-
-# ogc polygons
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -nln whse_mineral_tenure.og_road_area_permit_sp \
-  -lco GEOMETRY_NAME=geom \
-  -overwrite \
-  -where "map_tile_250 = '$1'" \
-  /vsis3/$BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
-  whse_mineral_tenure.og_road_area_permit_sp
-$PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
-$PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (map_tile)"
-
-
-# dra code tables
-$PSQL -c "DROP TABLE IF EXISTS whse_basemapping.transport_line_structure_code;
-DROP TABLE IF EXISTS whse_basemapping.transport_line_surface_code;
-DROP TABLE IF EXISTS whse_basemapping.transport_line_type_code;
-
-CREATE TABLE whse_basemapping.transport_line_structure_code (
-        transport_line_structure_code character varying(1) PRIMARY KEY,
-        description character varying(20) NOT NULL,
-        create_integration_session_id integer NOT NULL,
-        create_integration_date timestamp with time zone,
-        modify_integration_session_id integer NOT NULL,
-        modify_integration_date timestamp with time zone
-);
-
-CREATE TABLE whse_basemapping.transport_line_surface_code (
-        transport_line_surface_code character varying(1) PRIMARY KEY,
-        description character varying(20) NOT NULL,
-        create_integration_session_id integer NOT NULL,
-        create_integration_date timestamp with time zone,
-        modify_integration_session_id integer NOT NULL,
-        modify_integration_date timestamp with time zone
-);
-
-CREATE TABLE whse_basemapping.transport_line_type_code (
-        transport_line_type_code character varying(3) PRIMARY KEY,
-        description character varying(30) NOT NULL,
-        demographic_ind character varying(1) NOT NULL,
-        create_integration_session_id integer NOT NULL,
-        create_integration_date timestamp with time zone,
-        modify_integration_session_id integer NOT NULL,
-        modify_integration_date timestamp with time zone,
-        road_class character varying(12) NOT NULL
-);"
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -update \
-  -append \
-  -nln whse_basemapping.transport_line_type_code \
-  /vsis3/$BUCKET/whse_basemapping.transport_line_type_code.csv \
-  whse_basemapping.transport_line_type_code
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -update \
-  -append \
-  -nln whse_basemapping.transport_line_surface_code \
-  /vsis3/$BUCKET/whse_basemapping.transport_line_surface_code.csv \
-  whse_basemapping.transport_line_surface_code
-ogr2ogr \
-  -f PostgreSQL \
-  "PG:$DATABASE_URL" \
-  -update \
-  -append \
-  -nln whse_basemapping.transport_line_structure_code \
-  /vsis3/$BUCKET/whse_basemapping.transport_line_structure_code.csv \
-  whse_basemapping.transport_line_structure_code
-
-# ----------
-# process the roads
-# ----------
 # create initial output geometry table / source table
 $PSQL -f sql/integratedroads_1.sql
 
@@ -207,12 +22,14 @@ $PSQL -tXA \
         transport_line_id,
         map_tile,
         ST_MakeValid((st_dump(geom)).geom) as geom
-      FROM whse_basemapping.transport_line"
+      FROM whse_basemapping.transport_line
+      WHERE map_tile like '$tile%'"
 
 # load all other sources in descending order of priority
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM ften_active
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=ften_active -v pk=map_label
@@ -220,6 +37,7 @@ psql $DATABASE_URL -tXA \
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM ften_retired
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=ften_retired -v pk=map_label
@@ -227,6 +45,7 @@ psql $DATABASE_URL -tXA \
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM results
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=results -v pk=results_id
@@ -234,6 +53,7 @@ psql $DATABASE_URL -tXA \
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp -v pk=og_petrlm_dev_rd_pre06_pub_id
@@ -241,6 +61,7 @@ psql $DATABASE_URL -tXA \
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM whse_mineral_tenure.og_road_segment_permit_sp
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=whse_mineral_tenure.og_road_segment_permit_sp -v pk=og_road_segment_permit_id
@@ -248,6 +69,7 @@ psql $DATABASE_URL -tXA \
 psql $DATABASE_URL -tXA \
 -c "SELECT DISTINCT map_tile
     FROM og_permits_row
+    WHERE map_tile like '$tile%'
     ORDER BY map_tile" \
     | parallel --tag \
       $PSQL -f sql/load_difference.sql -v tile={1} -v src_roads=og_permits_row -v pk=og_permits_row_id

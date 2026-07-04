@@ -55,16 +55,16 @@ cleaned AS
 
 -- if geometries are extremely complex, subdivide them
 -- (this potentially leaves small gaps between the features)
---subdivided AS
---(
-  --SELECT st_subdivide(geom, 500)
-  --FROM cleaned
-  --WHERE st_npoints(geom) >= 5000
-  --UNION ALL
-  --SELECT geom
-  --FROM cleaned
-  --WHERE st_npoints(geom) < 5000
---),
+-- subdivided AS
+-- (
+--  SELECT st_subdivide(geom, 500)
+--  FROM cleaned
+--  WHERE st_npoints(geom) >= 5000
+--  UNION ALL
+--  SELECT geom
+--  FROM cleaned
+--  WHERE st_npoints(geom) < 5000
+-- ),
 
 -- convert to lines
 lines AS

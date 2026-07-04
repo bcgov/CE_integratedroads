@@ -1,0 +1,117 @@
+#!/bin/bash
+set -euxo pipefail
+
+# ----
+# Download various required datasets to CE bucket
+# ----
+
+# tiles
+bcdata dump -l -v "whse_basemapping.bcgs_20k_grid" |
+  ogr2ogr -f Parquet \
+    -lco COMPRESSION=ZSTD \
+    -lco COMPRESSION_LEVEL=15 \
+    -lco SORT_BY_BBOX=YES \
+    -select map_tile \
+    whse_basemapping.bcgs_20k_grid.parquet \
+    /vsistdin/
+aws s3 cp whse_basemapping.bcgs_20k_grid.parquet s3://$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet --acl public-read
+
+# also copy tiles to temp gpkg (with spatial index for intersecting with source layer)
+ogr2ogr \
+  /tmp/tiles.gpkg \
+  whse_basemapping.bcgs_20k_grid.parquet \
+  whse_basemapping.bcgs_20k_grid
+
+# WFS sources defined in bcdata.json
+# ----
+jq -c '.[]' bcdata.json | while read item; do
+    source=$(jq -r '.source' <<< "$item")
+    query=$(jq -r '.query' <<< "$item")
+    columns=$(jq -r 'if .columns | type == "array" then .columns | join(",") else "" end' <<< "$item")
+
+    echo "Replicating $source to CE object storage bucket"
+
+    # dump to tmp gpkg (with spatial index)
+    set -e ; bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source |
+      ogr2ogr -f GPKG \
+        ${columns:+-select "$columns"} \
+        /tmp/$source.gpkg \
+        /vsistdin/
+
+    # then cut with bcgs 20k tiles
+    gdal vector layer-algebra intersection \
+      --lco COMPRESSION=ZSTD \
+      --lco COMPRESSION_LEVEL=15 \
+      --lco SORT_BY_BBOX=YES \
+      --input-prefix "" \
+      --method-prefix "" \
+      /tmp/$source.gpkg \
+      /tmp/tiles.gpkg \
+      $source.parquet
+
+    aws s3 cp $source.parquet s3://$BUCKET/sources/$source.parquet --acl public-read
+
+done
+
+
+# Download DRA from file
+# (We use the non-public copy DRA because the public dataset's schema does not match
+# the schema used in these queries. Below extracts only the public portion of the data)
+# ----
+curl \
+  -o /tmp/transport_line.gdb.zip \
+  https://nrs.objectstore.gov.bc.ca/itqlyp/GBA/PROVINCE/transport_line.gdb.zip
+
+# extract password protected zipfile
+unzip \
+  -P $DRAPWD \
+  -d /tmp \
+  -o \
+  /tmp/transport_line.gdb.zip
+
+# extract data of interest, write to .gpkg
+ogr2ogr \
+  -f GPKG \
+  /tmp/transport_line.gpkg \
+  -select "TRANSPORT_LINE_ID,STRUCTURED_NAME_1,STRUCTURED_NAME_1_ID,CAPTURE_DATE,TOTAL_NUMBER_OF_LANES,TRANSPORT_LINE_STRUCTURE_CODE,TRANSPORT_LINE_TYPE_CODE,TRANSPORT_LINE_SURFACE_CODE" \
+  -unsetFid \
+  -dim XY \
+  -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
+  /tmp/transport_line.gdb \
+  TRANSPORT_LINE
+
+# cut with tiles
+gdal vector layer-algebra intersection \
+  --lco COMPRESSION=ZSTD \
+  --lco COMPRESSION_LEVEL=15 \
+  --lco SORT_BY_BBOX=YES \
+  --input-prefix "" \
+  --method-prefix "" \
+  /tmp/transport_line.gpkg \
+  /tmp/tiles.gpkg \
+  /tmp/whse_basemapping.transport_line.parquet
+
+# dump dra code tables to csv 
+ogr2ogr \
+  -f CSV \
+  /tmp/whse_basemapping.transport_line_structure_code.csv \
+  /tmp/transport_line.gdb \
+  TRANSPORT_LINE_STRUCTURE_CODE
+
+ogr2ogr \
+  -f CSV \
+  /tmp/whse_basemapping.transport_line_type_code.csv \
+  /tmp/transport_line.gdb \
+  TRANSPORT_LINE_TYPE_CODE
+
+ogr2ogr \
+  -f CSV \
+  /tmp/whse_basemapping.transport_line_surface_code.csv \
+  /tmp/transport_line.gdb \
+  TRANSPORT_LINE_SURFACE_CODE
+
+# upload
+aws s3 cp /tmp/whse_basemapping.transport_line.parquet s3://$BUCKET/sources/whse_basemapping.transport_line.parquet
+aws s3 cp /tmp/whse_basemapping.transport_line_structure_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_structure_code.csv
+aws s3 cp /tmp/whse_basemapping.transport_line_type_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_type_code.csv
+aws s3 cp /tmp/whse_basemapping.transport_line_surface_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_surface_code.csv

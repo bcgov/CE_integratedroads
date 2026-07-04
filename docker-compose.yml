@@ -1,7 +1,8 @@
 services:
   db:
     build:
-      context: https://github.com/postgis/docker-postgis.git#master:16-3.5
+      context: .
+      dockerfile: docker/db/Dockerfile
     container_name: ce_integratedroads-db
     ports:
       - ${DB_PORT}:5432

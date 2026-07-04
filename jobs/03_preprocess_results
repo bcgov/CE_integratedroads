@@ -10,11 +10,20 @@ PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
+  -append \
+  --config OGR_TRUNCATE=YES \
+  -nln whse_basemapping.bcgs_20k_grid \
+  /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
+  whse_basemapping.bcgs_20k_grid
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
   -nln whse_forest_vegetation.rslt_forest_cover_inv_svw \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select forest_cover_id,map_tile \
-  /vsis3/$BUCKET/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
+  /vsis3/$BUCKET/sources/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
   whse_forest_vegetation.rslt_forest_cover_inv_svw
 
 $PSQL -c "SELECT COUNT(*) FROM whse_forest_vegetation.rslt_forest_cover_inv_svw"
@@ -29,7 +38,7 @@ $PSQL -c "CREATE TABLE results (
 
 $PSQL -tXA \
 -c "SELECT DISTINCT map_tile
-    FROM whse_forest_vegetation.rslt_forest_cover_inv_svw r
+    FROM whse_forest_vegetation.rslt_forest_cover_inv_svw
     WHERE ST_ISValid(geom)
     ORDER BY map_tile" \
     | parallel --tag \
@@ -38,9 +47,15 @@ $PSQL -tXA \
         -v in_table=whse_forest_vegetation.rslt_forest_cover_inv_svw \
         -v out_table=results
 
-# dump to file
+# dump to local file (required for indexing)
 ogr2ogr \
   -f Parquet \
-  /vsis3/$BUCKET/results.parquet \
+  /tmp/results.parquet \
   PG:$DATABASE_URL \
-  -sql "select *, substring(map_tile for 4) as map_tile_250 from results order by substring(map_tile for 4)"
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
+  -sql "select * from results"
+
+# upload
+aws s3 cp /tmp/results.parquet s3://$BUCKET/cleaned/results.parquet
