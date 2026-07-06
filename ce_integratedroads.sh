@@ -12,12 +12,9 @@ jobs/04_preprocess_og_permits_row
 jobs/05_load
 
 
-for tile in $(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties.MAP_TILE' | tr '\n' ' ')
+for tile in $(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -r '.properties.MAP_TILE' | tr '\n' ' ')
 do
   set -e ; jobs/06_integrate $tile
 done
-
-# test a tile
-# jobs/06_integrate 092B
 
 jobs/07_dump

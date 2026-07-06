@@ -21,5 +21,5 @@ END $$;
 CREATE TABLE whse_basemapping.bcgs_20k_grid (
   map_tile text primary key,
   map_tile_250k text GENERATED ALWAYS AS (left(map_tile, 4)) STORED,
-  geom geometry(multipolygon, 3005)
+  geom geometry(polygon, 3005)
 );
