@@ -24,5 +24,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: dump
+        shell: bash
         run:
           jobs/07_dump

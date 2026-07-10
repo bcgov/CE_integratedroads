@@ -27,5 +27,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Download/tile/dump
+        shell: bash
         run:  |
           jobs/01_download

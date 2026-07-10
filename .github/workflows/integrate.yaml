@@ -24,6 +24,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - id: set-matrix
+      shell: bash
       run: |
         DATA=$(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties | {map_tile: .MAP_TILE}' | tr '\n' ',')
         echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
@@ -49,6 +50,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: integrate
+        shell: bash
         run:  |
           jobs/05_load ${{ matrix.MAP_TILE }}
           jobs/06_integrate ${{ matrix.MAP_TILE }}
