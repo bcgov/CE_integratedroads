@@ -61,6 +61,75 @@ SELECT distinct on (s.integratedroads_id)
     WHEN i.og_permits_row_id IS NOT NULL THEN 7
   END AS cef_road_priority_rank,
   array_to_string(array_remove(array[rasl.s1, rasl.s2, rasl.s3, rasl.s4, rasl.s5, rasl.s6, rasl.s7], NULL),';') as cef_road_attr_src_list,
+  
+  -- road classification for buffers
+  CASE
+    -- Class 1: Highways, arterials, collectors, freeways
+    WHEN i.transport_line is not null AND dra_road_class IN (
+        'Road arterial major',
+        'Road arterial minor',
+        'Road collector major',
+        'Road collector minor',
+        'Road freeway',
+        'Road highway major',
+        'Road highway minor',
+        'Road ramp',
+        'Road runway',
+        'Road runway non-demographic',
+        'Road yield lane'
+    ) THEN 1
+
+    -- Class 2/4: Local roads (paved = 2, else = 4)
+    WHEN i.transport_line is not null AND dra_road_class IN (
+        'Road alleyway',
+        'Private driveway demographic',
+        'Road driveway non-demographic',
+        'Road lane',
+        'Road local',
+        'Road strata'
+    ) THEN CASE WHEN dra_road_surface = 'paved' THEN 2 ELSE 4 END
+
+    -- Class 2/3/4: Resource roads (paved = 2, loose = 3, else = 4)
+    WHEN i.transport_line is not null AND dra_road_class IN (
+        'Road resource',
+        'Road resource demographic',
+        'Road resource non status'
+    ) THEN CASE
+        WHEN dra_road_surface = 'paved' THEN 2
+        WHEN dra_road_surface = 'loose' THEN 3
+        ELSE 4
+    END
+
+    -- Class 3/4: Recreation & service roads (paved/loose = 3, else = 4)
+    WHEN i.transport_line is not null AND dra_road_class IN (
+        'Road recreation',
+        'Road recreation demographic',
+        'Road service'
+    ) THEN CASE WHEN dra_road_surface IN ('paved', 'loose') THEN 3 ELSE 4 END
+
+    -- Class 4: Restricted, controlled, pedestrian, proposed
+    WHEN i.transport_line is not null AND dra_road_class IN (
+        'Road restricted', 
+        'Road controlled',
+        'Road pedestrian mall', 
+        'Road Proposed'
+    ) THEN 4
+
+    -- Class 3/4: Unclassified (paved = 3, else = 4)
+    WHEN i.transport_line is not null AND dra_road_class = 'Road unclassified'
+        THEN CASE WHEN dra_road_surface = 'paved' THEN 3 ELSE 4 END
+
+    -- Class 5: Trail skid
+    WHEN i.transport_line is not null AND dra_road_class = 'Trail skid' THEN 5
+
+    -- Class 6: Trails
+    WHEN i.transport_line is not null AND dra_road_class IN ('Trail', 'Trail demographic', 'Trail recreation') THEN 6
+
+    -- Class 4: Catch-all for decommissioned/seasonal surfaces
+    -- (checked after trails, so trails keep their class regardless of surface)
+    WHEN dra_road_surface IN ('decommissioned', 'overgrown', 'seasonal', 'rehabilitated') THEN 4
+    
+  END AS road_class
   i.map_tile                                as map_tile,
   s.transport_line_id                       as transport_line_id,
   dra_struct.description                    as dra_structure,
