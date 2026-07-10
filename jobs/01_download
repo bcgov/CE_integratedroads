@@ -14,7 +14,7 @@ bcdata dump -l -v "whse_basemapping.bcgs_20k_grid" |
     -select map_tile \
     whse_basemapping.bcgs_20k_grid.parquet \
     /vsistdin/
-aws s3 cp whse_basemapping.bcgs_20k_grid.parquet s3://$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet --acl public-read
+aws s3 cp whse_basemapping.bcgs_20k_grid.parquet s3://$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet --acl public-read --no-progress
 
 # also copy tiles to temp gpkg (with spatial index for intersecting with source layer)
 ogr2ogr \
@@ -38,7 +38,8 @@ jq -c '.[]' bcdata.json | while read item; do
     #    /tmp/$source.gpkg \
     #    /vsistdin/
 
-    # debug resource issues on gha
+    # piping to ogr was not reliably working on GHA, dump geojson to file before converting to gpkg
+    # (does not appear to be a resource issue, unclear what the problem is)
     bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source > /tmp/$source.json
     ogr2ogr -f GPKG ${columns:+-select "$columns"} /tmp/$source.gpkg /tmp/$source.json
     rm /tmp/$source.json
@@ -56,7 +57,7 @@ jq -c '.[]' bcdata.json | while read item; do
 
     aws s3 cp $source.parquet s3://$BUCKET/sources/$source.parquet --acl public-read --no-progress
 
-    # save space (important when run on GHA)
+    # save space 
     rm -rf /tmp/$source.gpkg
     rm -rf $source.parquet
 
