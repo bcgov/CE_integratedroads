@@ -39,10 +39,7 @@ jq -c '.[]' bcdata.json | while read item; do
     #    /vsistdin/
 
     # debug resource issues on gha
-    free -h
-    df -h
     bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source > /tmp/$source.json
-    ls -la /tmp/$source.json
     ogr2ogr -f GPKG ${columns:+-select "$columns"} /tmp/$source.gpkg /tmp/$source.json
     rm /tmp/$source.json
 
@@ -57,7 +54,7 @@ jq -c '.[]' bcdata.json | while read item; do
       /tmp/tiles.gpkg \
       $source.parquet
 
-    aws s3 cp $source.parquet s3://$BUCKET/sources/$source.parquet --acl public-read
+    aws s3 cp $source.parquet s3://$BUCKET/sources/$source.parquet --acl public-read --no-progress
 
     # save space (important when run on GHA)
     rm -rf /tmp/$source.gpkg
@@ -92,19 +89,6 @@ ogr2ogr \
   -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
   /tmp/transport_line.gdb \
   TRANSPORT_LINE
-rm -rf /tmp/transport_line.gdb
-
-# cut with tiles
-gdal vector layer-algebra intersection \
-  --lco COMPRESSION=ZSTD \
-  --lco COMPRESSION_LEVEL=15 \
-  --lco SORT_BY_BBOX=YES \
-  --input-prefix "" \
-  --method-prefix "" \
-  /tmp/transport_line.gpkg \
-  /tmp/tiles.gpkg \
-  /tmp/whse_basemapping.transport_line.parquet
-rm -rf /tmp/transport_line.gpkg
 
 # dump dra code tables to csv 
 ogr2ogr \
@@ -125,8 +109,22 @@ ogr2ogr \
   /tmp/transport_line.gdb \
   TRANSPORT_LINE_SURFACE_CODE
 
+rm -rf /tmp/transport_line.gdb
+
+# cut with tiles
+gdal vector layer-algebra intersection \
+  --lco COMPRESSION=ZSTD \
+  --lco COMPRESSION_LEVEL=15 \
+  --lco SORT_BY_BBOX=YES \
+  --input-prefix "" \
+  --method-prefix "" \
+  /tmp/transport_line.gpkg \
+  /tmp/tiles.gpkg \
+  /tmp/whse_basemapping.transport_line.parquet
+rm -rf /tmp/transport_line.gpkg
+
 # upload
-aws s3 cp /tmp/whse_basemapping.transport_line.parquet s3://$BUCKET/sources/whse_basemapping.transport_line.parquet
-aws s3 cp /tmp/whse_basemapping.transport_line_structure_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_structure_code.csv
-aws s3 cp /tmp/whse_basemapping.transport_line_type_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_type_code.csv
-aws s3 cp /tmp/whse_basemapping.transport_line_surface_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_surface_code.csv
+aws s3 cp /tmp/whse_basemapping.transport_line.parquet s3://$BUCKET/sources/whse_basemapping.transport_line.parquet --acl public-read --no-progress
+aws s3 cp /tmp/whse_basemapping.transport_line_structure_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_structure_code.csv --acl public-read --no-progress
+aws s3 cp /tmp/whse_basemapping.transport_line_type_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_type_code.csv --acl public-read --no-progress
+aws s3 cp /tmp/whse_basemapping.transport_line_surface_code.csv s3://$BUCKET/sources/whse_basemapping.transport_line_surface_code.csv --acl public-read --no-progress
