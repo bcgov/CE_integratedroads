@@ -6,12 +6,12 @@ on:
     branches:
       - 'main'
     paths:
-      - 'docker'
+      - 'docker/**'
   pull_request:
     branches:
       - 'main'
     paths:
-      - 'docker'
+      - 'docker/**'
 
 env:
   REGISTRY: ghcr.io
