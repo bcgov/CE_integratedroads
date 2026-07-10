@@ -32,11 +32,19 @@ jq -c '.[]' bcdata.json | while read item; do
     echo "Replicating $source to CE object storage bucket"
 
     # dump to tmp gpkg (with spatial index)
-    set -euo pipefail; bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source |
-      ogr2ogr -f GPKG \
-        ${columns:+-select "$columns"} \
-        /tmp/$source.gpkg \
-        /vsistdin/
+    #set -euo pipefail; bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source |
+    #  ogr2ogr -f GPKG \
+    #    ${columns:+-select "$columns"} \
+    #    /tmp/$source.gpkg \
+    #    /vsistdin/
+
+    # debug resource issues on gha
+    free -h
+    df -h
+    bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source > /tmp/$source.json
+    ls -la /tmp/$source.json
+    ogr2ogr -f GPKG ${columns:+-select "$columns"} /tmp/$source.gpkg /tmp/$source.json
+    rm /tmp/$source.json
 
     # then cut with bcgs 20k tiles
     gdal vector layer-algebra intersection \
