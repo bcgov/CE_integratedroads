@@ -32,7 +32,7 @@ jq -c '.[]' bcdata.json | while read item; do
     echo "Replicating $source to CE object storage bucket"
 
     # dump to tmp gpkg (with spatial index)
-    set -e ; bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source |
+    set -euo pipefail; bcdata dump --promote-to-multi -l ${query:+--query "$query"} -v $source |
       ogr2ogr -f GPKG \
         ${columns:+-select "$columns"} \
         /tmp/$source.gpkg \
