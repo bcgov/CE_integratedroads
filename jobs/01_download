@@ -51,6 +51,10 @@ jq -c '.[]' bcdata.json | while read item; do
 
     aws s3 cp $source.parquet s3://$BUCKET/sources/$source.parquet --acl public-read
 
+    # save space (important when run on GHA)
+    rm -rf /tmp/$source.gpkg
+    rm -rf $source.parquet
+
 done
 
 
@@ -68,6 +72,7 @@ unzip \
   -d /tmp \
   -o \
   /tmp/transport_line.gdb.zip
+rm -rf /tmp/transport_line.gdb.zip
 
 # extract data of interest, write to .gpkg
 ogr2ogr \
@@ -79,6 +84,7 @@ ogr2ogr \
   -where "TRANSPORT_LINE_SURFACE_CODE <> 'B'" \
   /tmp/transport_line.gdb \
   TRANSPORT_LINE
+rm -rf /tmp/transport_line.gdb
 
 # cut with tiles
 gdal vector layer-algebra intersection \
@@ -90,6 +96,7 @@ gdal vector layer-algebra intersection \
   /tmp/transport_line.gpkg \
   /tmp/tiles.gpkg \
   /tmp/whse_basemapping.transport_line.parquet
+rm -rf /tmp/transport_line.gpkg
 
 # dump dra code tables to csv 
 ogr2ogr \
