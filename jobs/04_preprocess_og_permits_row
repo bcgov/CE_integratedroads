@@ -10,11 +10,20 @@ PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
+  -append \
+  --config OGR_TRUNCATE=YES \
+  -nln whse_basemapping.bcgs_20k_grid \
+  /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
+  whse_basemapping.bcgs_20k_grid
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
   -nln whse_mineral_tenure.og_road_area_permit_sp \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   -select og_road_area_permit_id,map_tile \
-  /vsis3/$BUCKET/whse_mineral_tenure.og_road_area_permit_sp.parquet \
+  /vsis3/$BUCKET/sources/whse_mineral_tenure.og_road_area_permit_sp.parquet \
   whse_mineral_tenure.og_road_area_permit_sp
 
 $PSQL -c "DROP TABLE IF EXISTS og_permits_row"
@@ -27,7 +36,7 @@ $PSQL -c "CREATE TABLE og_permits_row (
 
 $PSQL -tXA \
 -c "SELECT DISTINCT map_tile
-    FROM whse_mineral_tenure.og_road_area_permit_sp r
+    FROM whse_mineral_tenure.og_road_area_permit_sp
     ORDER BY map_tile" \
      | parallel --tag \
        $PSQL -f sql/roadpoly2line.sql \
@@ -35,9 +44,15 @@ $PSQL -tXA \
        -v in_table=whse_mineral_tenure.og_road_area_permit_sp \
        -v out_table=og_permits_row
 
-# dump to file
+# dump to local file (required for indexing)
 ogr2ogr \
   -f Parquet \
-  /vsis3/$BUCKET/og_permits_row.parquet \
+  /tmp/og_permits_row.parquet \
   PG:$DATABASE_URL \
-  -sql "select *, substring(map_tile for 4) as map_tile_250 from og_permits_row order by substring(map_tile for 4)"
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
+  -sql "select * from og_permits_row"
+
+# upload
+aws s3 cp /tmp/og_permits_row.parquet s3://$BUCKET/cleaned/og_permits_row.parquet  

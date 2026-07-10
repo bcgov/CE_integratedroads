@@ -18,7 +18,7 @@ env:
 jobs:
   get-matrix:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -29,14 +29,14 @@ jobs:
         echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
   integratedroads:
     runs-on: ubuntu-latest
-    container: ghcr.io/bcgov/ce_integratedroads:main
+    container: ghcr.io/bcgov/ce_integratedroads-runner:main
     environment: production
     needs: get-matrix
     strategy:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
       postgres:
-        image: postgis/postgis:16-3.5
+        image: ghcr.io/bcgov/ce_integratedroads-db:main
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -50,5 +50,5 @@ jobs:
         uses: actions/checkout@v4
       - name: integrate
         run:  |
-          jobs/00_setup_db
+          jobs/05_load ${{ matrix.MAP_TILE }}
           jobs/06_integrate ${{ matrix.MAP_TILE }}

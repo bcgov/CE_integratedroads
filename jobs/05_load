@@ -1,0 +1,206 @@
+#!/bin/bash
+set -euxo pipefail
+
+
+# ----
+# load/reload all required/preprocesed sources
+# ----
+
+tile=${1:-}
+bounds=""
+PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
+
+# load tiles
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -append \
+  --config OGR_TRUNCATE=YES \
+  -nln whse_basemapping.bcgs_20k_grid \
+  ${tile:+-sql "SELECT map_tile, geometry FROM \"whse_basemapping.bcgs_20k_grid\" WHERE map_tile like '$tile%'"} \
+  -dialect SQLite \
+  /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet
+
+# if tile provided as arg, get bounds of provided tile (+10m buffer)
+if [ -n "$tile" ]; then
+  bounds=$(psql $DATABASE_URL -t -A -c "
+    select st_xmin(e) - 10 || ' ' || st_ymin(e) - 10 || ' ' || st_xmax(e) + 10 || ' ' || st_ymax(e) + 10
+    from (select st_extent(geom) as e from whse_basemapping.bcgs_20k_grid where map_tile like '${tile}%') s
+  ")
+fi
+
+# DRA
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_basemapping.transport_line \
+  -nlt PROMOTE_TO_MULTI \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/sources/whse_basemapping.transport_line.parquet \
+  whse_basemapping.transport_line
+$PSQL -c "create index on whse_basemapping.transport_line (transport_line_id)"
+
+# ften 
+# note that -overwrite option means retired/active views are dropped on load if they already exist
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_forest_tenure.ften_road_section_lines_svw \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/cleaned/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  whse_forest_tenure.ften_road_section_lines_svw_cleaned
+$PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
+
+# create views of retired/active ften roads
+$PSQL -c "create view ften_active as (
+  select
+    row_number() over() as id,
+    life_cycle_status_code,
+    map_label,
+    map_tile,
+    geom
+  from whse_forest_tenure.ften_road_section_lines_svw
+  where life_cycle_status_code = 'ACTIVE'
+)"
+
+$PSQL -c "create view ften_retired as (
+  select
+    row_number() over() as id,
+    life_cycle_status_code,
+    map_label,
+    map_tile,
+    geom
+  from whse_forest_tenure.ften_road_section_lines_svw
+  where life_cycle_status_code = 'RETIRED'
+)"
+
+# results - both polys and lines are required
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln results \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/cleaned/results.parquet \
+  results
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_forest_vegetation.rslt_forest_cover_inv_svw \
+  -lco GEOMETRY_NAME=geom \
+  -nlt PROMOTE_TO_MULTI \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/sources/whse_forest_vegetation.rslt_forest_cover_inv_svw.parquet \
+  whse_forest_vegetation.rslt_forest_cover_inv_svw
+$PSQL -c "create index on whse_forest_vegetation.rslt_forest_cover_inv_svw (forest_cover_id)"
+
+# ogc linear features
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/sources/whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp.parquet \
+  whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp
+$PSQL -c "create index on whse_mineral_tenure.og_petrlm_dev_rds_pre06_pub_sp (og_petrlm_dev_rd_pre06_pub_id)"
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_mineral_tenure.og_road_segment_permit_sp \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/sources/whse_mineral_tenure.og_road_segment_permit_sp.parquet \
+  whse_mineral_tenure.og_road_segment_permit_sp
+$PSQL -c "create index on whse_mineral_tenure.og_road_segment_permit_sp (og_road_segment_permit_id)"
+
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln og_permits_row \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/cleaned/og_permits_row.parquet \
+  og_permits_row
+
+# ogc polygons
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln whse_mineral_tenure.og_road_area_permit_sp \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/sources/whse_mineral_tenure.og_road_area_permit_sp.parquet \
+  whse_mineral_tenure.og_road_area_permit_sp
+$PSQL -c "create index on whse_mineral_tenure.og_road_area_permit_sp (og_road_area_permit_id)"
+
+
+# dra code tables
+$PSQL -c "DROP TABLE IF EXISTS whse_basemapping.transport_line_structure_code;
+DROP TABLE IF EXISTS whse_basemapping.transport_line_surface_code;
+DROP TABLE IF EXISTS whse_basemapping.transport_line_type_code;
+
+CREATE TABLE whse_basemapping.transport_line_structure_code (
+        transport_line_structure_code character varying(1) PRIMARY KEY,
+        description character varying(20) NOT NULL,
+        create_integration_session_id integer NOT NULL,
+        create_integration_date timestamp with time zone,
+        modify_integration_session_id integer NOT NULL,
+        modify_integration_date timestamp with time zone
+);
+
+CREATE TABLE whse_basemapping.transport_line_surface_code (
+        transport_line_surface_code character varying(1) PRIMARY KEY,
+        description character varying(20) NOT NULL,
+        create_integration_session_id integer NOT NULL,
+        create_integration_date timestamp with time zone,
+        modify_integration_session_id integer NOT NULL,
+        modify_integration_date timestamp with time zone
+);
+
+CREATE TABLE whse_basemapping.transport_line_type_code (
+        transport_line_type_code character varying(3) PRIMARY KEY,
+        description character varying(30) NOT NULL,
+        demographic_ind character varying(1) NOT NULL,
+        create_integration_session_id integer NOT NULL,
+        create_integration_date timestamp with time zone,
+        modify_integration_session_id integer NOT NULL,
+        modify_integration_date timestamp with time zone,
+        road_class character varying(12) NOT NULL
+);"
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -update \
+  -append \
+  -nln whse_basemapping.transport_line_type_code \
+  /vsis3/$BUCKET/sources/whse_basemapping.transport_line_type_code.csv \
+  whse_basemapping.transport_line_type_code
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -update \
+  -append \
+  -nln whse_basemapping.transport_line_surface_code \
+  /vsis3/$BUCKET/sources/whse_basemapping.transport_line_surface_code.csv \
+  whse_basemapping.transport_line_surface_code
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -update \
+  -append \
+  -nln whse_basemapping.transport_line_structure_code \
+  /vsis3/$BUCKET/sources/whse_basemapping.transport_line_structure_code.csv \
+  whse_basemapping.transport_line_structure_code
