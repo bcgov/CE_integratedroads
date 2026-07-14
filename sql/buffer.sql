@@ -2,7 +2,7 @@
 create temporary table buffers_1 (
   road_class integer,
   map_tile text,
-  geom geometry(Polygon, 3005)
+  geom geometry(MultiPolygon, 3005)
 );
 create index on buffers_1 using gist (geom);
 
