@@ -29,7 +29,7 @@ jobs:
         DATA=$(ogr2ogr -f GeoJSON /vsistdout/ /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
           -sql "SELECT DISTINCT SUBSTR(map_tile, 1, 4) AS map_tile FROM \"whse_basemapping.bcgs_20k_grid\"" \
           -dialect SQLite \
-        | jq -c '[.features[].properties]')
+        | jq -c '[.features[].properties] | to_entries | map(.value + {row: .key + 1})')
         echo "matrix={\"include\":$DATA}" >> $GITHUB_OUTPUT
   integratedroads:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
       - name: integrate
         shell: bash
         run:  |
-          delay=$((RANDOM % 60 + 1))
+          delay=${{ matrix.ROW }}
           echo "Delaying for $delay seconds"
           sleep "$delay"
           jobs/05_load ${{ matrix.MAP_TILE }}
