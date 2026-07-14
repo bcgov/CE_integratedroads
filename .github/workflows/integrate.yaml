@@ -55,5 +55,8 @@ jobs:
       - name: integrate
         shell: bash
         run:  |
+          delay=$((RANDOM % 60 + 1))
+          echo "Delaying for $delay seconds"
+          sleep "$delay"
           jobs/05_load ${{ matrix.MAP_TILE }}
           jobs/06_integrate ${{ matrix.MAP_TILE }}
