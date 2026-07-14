@@ -50,7 +50,7 @@ $PSQL -tXA \
 # dump to local file (required for indexing)
 ogr2ogr \
   -f Parquet \
-  /tmp/results.parquet \
+  /tmp/results_cleaned.parquet \
   PG:$DATABASE_URL \
   -lco COMPRESSION=ZSTD \
   -lco COMPRESSION_LEVEL=15 \
@@ -58,4 +58,4 @@ ogr2ogr \
   -sql "select * from results"
 
 # upload
-aws s3 cp /tmp/results.parquet s3://$BUCKET/cleaned/results.parquet
+aws s3 cp /tmp/results_cleaned.parquet s3://$BUCKET/sources/results_cleaned.parquet

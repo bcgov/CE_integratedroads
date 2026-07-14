@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euxo pipefail
+
+
+# ----
+# load raw buffers
+# ----
+
+tile=${1:-}
+bounds=""
+PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
+
+# load all tiles
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -append \
+  --config OGR_TRUNCATE=YES \
+  -nln whse_basemapping.bcgs_20k_grid \
+  /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet
+
+# get bounds of provided tile (+10m buffer)
+if [ -n "$tile" ]; then
+  bounds=$(psql $DATABASE_URL -t -A -c "
+    select st_xmin(e) - 10 || ' ' || st_ymin(e) - 10 || ' ' || st_xmax(e) + 10 || ' ' || st_ymax(e) + 10
+    from (select st_extent(geom) as e from whse_basemapping.bcgs_20k_grid where map_tile like '${tile}%') s
+  ")
+fi
+
+# load the raw buffers from s3
+ogr2ogr \
+  -f PostgreSQL \
+  "PG:$DATABASE_URL" \
+  -nln raw_buffers \
+  -lco GEOMETRY_NAME=geom \
+  -overwrite \
+  ${bounds:+-spat $bounds} \
+  /vsis3/$BUCKET/raw_buffers \
+  raw_buffers
+
+# run the aggregation
+$PSQL -f sql/buffer_aggregate.sql -v tile=$tile
+
+# dump to file
+ogr2ogr \
+  -f Parquet \
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
+  -nlt POLYGON \
+  -sql "SELECT * FROM buffered_road_class" \
+  /tmp/buffers_$1.parquet \
+  "PG:$DATABASE_URL"
+
+# upload 
+aws s3 cp /tmp/buffers_$1.parquet s3://$BUCKET/buffers/buffers_$1.parquet

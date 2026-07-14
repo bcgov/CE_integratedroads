@@ -18,7 +18,11 @@ jobs:
     uses: ./.github/workflows/integrate.yaml
     secrets: inherit
     needs: preprocess
+  aggregate_buffers:
+    uses: ./.github/workflows/aggregate_buffers.yaml
+    secrets: inherit
+    needs: integrate
   dump:
     uses: ./.github/workflows/dump.yaml
     secrets: inherit
-    needs: integrate
+    needs: aggregate_buffers

@@ -62,4 +62,4 @@ ogr2ogr \
 
 # upload
 aws s3 cp /tmp/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
-  s3://$BUCKET/cleaned/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet 
+  s3://$BUCKET/sources/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet 

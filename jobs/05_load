@@ -10,15 +10,13 @@ tile=${1:-}
 bounds=""
 PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1"
 
-# load tiles
+# load all tiles
 ogr2ogr \
   -f PostgreSQL \
   "PG:$DATABASE_URL" \
   -append \
   --config OGR_TRUNCATE=YES \
   -nln whse_basemapping.bcgs_20k_grid \
-  ${tile:+-sql "SELECT map_tile, geometry FROM \"whse_basemapping.bcgs_20k_grid\" WHERE map_tile like '$tile%'"} \
-  -dialect SQLite \
   /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet
 
 # if tile provided as arg, get bounds of provided tile (+10m buffer)
@@ -51,7 +49,7 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   ${bounds:+-spat $bounds} \
-  /vsis3/$BUCKET/cleaned/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
+  /vsis3/$BUCKET/sources/whse_forest_tenure.ften_road_section_lines_svw_cleaned.parquet \
   whse_forest_tenure.ften_road_section_lines_svw_cleaned
 $PSQL -c "create index on whse_forest_tenure.ften_road_section_lines_svw (map_label)"
 
@@ -86,8 +84,8 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   ${bounds:+-spat $bounds} \
-  /vsis3/$BUCKET/cleaned/results.parquet \
-  results
+  /vsis3/$BUCKET/sources/results_cleaned.parquet \
+  results_cleaned
 
 ogr2ogr \
   -f PostgreSQL \
@@ -131,8 +129,8 @@ ogr2ogr \
   -lco GEOMETRY_NAME=geom \
   -overwrite \
   ${bounds:+-spat $bounds} \
-  /vsis3/$BUCKET/cleaned/og_permits_row.parquet \
-  og_permits_row
+  /vsis3/$BUCKET/sources/og_permits_row_cleaned.parquet \
+  og_permits_row_cleaned
 
 # ogc polygons
 ogr2ogr \
