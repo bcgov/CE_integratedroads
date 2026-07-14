@@ -37,6 +37,7 @@ jobs:
     environment: production
     needs: get-matrix
     strategy:
+      max-parallel: 20
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
       postgres:
@@ -55,7 +56,7 @@ jobs:
       - name: integrate
         shell: bash
         run:  |
-          delay=${{ matrix.row }}
+          delay=$((RANDOM % 30))
           echo "Delaying for $delay seconds"
           sleep "$delay"
           jobs/05_load ${{ matrix.map_tile }}
