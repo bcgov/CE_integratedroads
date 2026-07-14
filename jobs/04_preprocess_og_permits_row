@@ -47,7 +47,7 @@ $PSQL -tXA \
 # dump to local file (required for indexing)
 ogr2ogr \
   -f Parquet \
-  /tmp/og_permits_row.parquet \
+  /tmp/og_permits_row_cleaned.parquet \
   PG:$DATABASE_URL \
   -lco COMPRESSION=ZSTD \
   -lco COMPRESSION_LEVEL=15 \
@@ -55,4 +55,4 @@ ogr2ogr \
   -sql "select * from og_permits_row"
 
 # upload
-aws s3 cp /tmp/og_permits_row.parquet s3://$BUCKET/cleaned/og_permits_row.parquet  
+aws s3 cp /tmp/og_permits_row_cleaned.parquet s3://$BUCKET/sources/og_permits_row_cleaned.parquet  

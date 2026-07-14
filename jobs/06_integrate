@@ -105,35 +105,31 @@ $PSQL -c "VACUUM ANALYZE"
 
 $PSQL -f sql/integratedroads_2.sql  # note all sources associated with an output geom
 $PSQL -f sql/integratedroads.sql    # create output table
+$PSQL -f sql/buffer.sql             # run buffers
 
-# remove file if it already exists
-aws s3 rm s3://$BUCKET/integratedroads_$1.parquet
-
-# dump to file
+# dump road lines to file
 ogr2ogr \
   -f Parquet \
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
   -nlt LINESTRING \
-  -nln integratedroads \
   -sql "SELECT * FROM integratedroads" \
-  /vsis3/$BUCKET/integratedroads_$1.parquet \
+  /tmp/integratedroads_$1.parquet \
   "PG:$DATABASE_URL"
 
-#$PSQL --csv -f sql/summary.sql > summary.csv
+# dump initial (overlapping) road buffers to file, 
+# aggregating must be done in a separate step so that cross-tile roads are handled
+ogr2ogr \
+  -f Parquet \
+  -lco COMPRESSION=ZSTD \
+  -lco COMPRESSION_LEVEL=15 \
+  -lco SORT_BY_BBOX=YES \
+  -nlt POLYGON \
+  -sql "SELECT * FROM buffers" \
+  /tmp/raw_buffers_$1.parquet \
+  "PG:$DATABASE_URL"
 
-# summarize road source by length and percentage in the output gpkg
-#$PSQL --csv -c "WITH total AS \
-#( \
-#  SELECT SUM(ST_Length(geom)) AS total_length \
-#  FROM integratedroads \
-#) \
-#SELECT \
-#  bcgw_source, \
-#  to_char(CURRENT_DATE, 'YYYY-MM-DD') as bcgw_extraction_date, \
-#  ROUND((SUM(ST_Length(geom) / 1000)::numeric))  AS length_km, \
-#  ROUND( \
-#    (((SUM(ST_Length(geom)) / t.total_length)) * 100)::numeric, 1) as pct \
-#FROM integratedroads, total t \
-#GROUP BY bcgw_source, to_char(CURRENT_DATE, 'YYYY-MM-DD'), total_length \
-#ORDER BY bcgw_source" > bcgw_source_summary.csv
-
-#aws s3 cp bcgw_source_summary.csv s3://$BUCKET
+# upload 
+aws s3 cp /tmp/integratedroads_$1.parquet s3://$BUCKET/integratedroads/integratedroads_$1.parquet
+aws s3 cp /tmp/raw_buffers_$1.parquet s3://$BUCKET/raw_buffers/raw_buffers_$1.parquet
