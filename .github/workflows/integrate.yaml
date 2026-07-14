@@ -26,7 +26,6 @@ jobs:
     - id: set-matrix
       shell: bash
       run: |
-        set -e
         DATA=$(ogr2ogr -f GeoJSON /vsistdout/ /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
           -sql "SELECT DISTINCT SUBSTR(map_tile, 1, 4) AS map_tile FROM \"whse_basemapping.bcgs_20k_grid\"" \
           -dialect SQLite \
