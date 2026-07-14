@@ -26,8 +26,11 @@ jobs:
     - id: set-matrix
       shell: bash
       run: |
-        DATA=$(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -c '.properties | {map_tile: .MAP_TILE}' | tr '\n' ',')
-        echo "matrix={\"include\":[$DATA]}" >> $GITHUB_OUTPUT
+        DATA=$(ogr2ogr -f GeoJSON /vsistdout/ /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
+          -sql "SELECT DISTINCT SUBSTR(map_tile, 1, 4) AS map_tile FROM \"whse_basemapping.bcgs_20k_grid\"" \
+          -dialect SQLite \
+        | jq -c '[.features[].properties]')
+        echo "matrix={\"include\":$DATA}" >> $GITHUB_OUTPUT
   integratedroads:
     runs-on: ubuntu-latest
     container: ghcr.io/bcgov/ce_integratedroads-runner:main
