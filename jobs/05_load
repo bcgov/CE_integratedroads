@@ -16,6 +16,7 @@ ogr2ogr \
   "PG:$DATABASE_URL" \
   -append \
   --config OGR_TRUNCATE=YES \
+  --config CPL_CURL_VERBOSE=YES \
   -nln whse_basemapping.bcgs_20k_grid \
   /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet
 
