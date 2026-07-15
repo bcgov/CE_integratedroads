@@ -26,6 +26,10 @@ jobs:
     - id: set-matrix
       shell: bash
       run: |
+        if ! curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/; then
+            echo "Runner failed to connect to nrs.objectstore via curl"
+            exit 1
+        fi
         DATA=$(ogr2ogr -f GeoJSON /vsistdout/ /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
           -sql "SELECT DISTINCT SUBSTR(map_tile, 1, 4) AS map_tile FROM \"whse_basemapping.bcgs_20k_grid\"" \
           -dialect SQLite \
@@ -60,6 +64,9 @@ jobs:
           delay=$(( (RANDOM % 15) ))
           echo "Delaying for $delay seconds"
           sleep "$delay"
-          curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/
+          if ! curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/; then
+            echo "Runner failed to connect to nrs.objectstore via curl"
+            exit 1
+          fi
           jobs/05_load ${{ matrix.map_tile }}
           jobs/06_integrate ${{ matrix.map_tile }}
