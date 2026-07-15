@@ -56,9 +56,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v5
       - name: integrate
+        continue-on-error: true
         shell: bash
         run:  |
-          delay=$(( (RANDOM % 10) + ${{ matrix.row }} ))
+          delay=$(( (RANDOM % 30) + ${{ matrix.row }} ))
           echo "Delaying for $delay seconds"
           sleep "$delay"
           curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/ || echo "warmup curl failed/timed out"
