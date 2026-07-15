@@ -40,7 +40,6 @@ jobs:
     environment: production
     needs: get-matrix
     strategy:
-      max-parallel: 40
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
       postgres:
