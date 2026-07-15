@@ -15,6 +15,9 @@ env:
   AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
   AWS_EC2_METADATA_DISABLED: ${{ vars.AWS_EC2_METADATA_DISABLED }}
   CPL_VSISTDIN_BUFFER_LIMIT: ${{ vars.CPL_VSISTDIN_BUFFER_LIMIT }}
+  GDAL_HTTP_CONNECTTIMEOUT: "10"
+  GDAL_HTTP_MAX_RETRY: "2"
+  GDAL_HTTP_RETRY_DELAY: "5"
 jobs:
   get-matrix:
     runs-on: ubuntu-latest
@@ -37,7 +40,7 @@ jobs:
     environment: production
     needs: get-matrix
     strategy:
-      max-parallel: 20
+      max-parallel: 40
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     services:
       postgres:
@@ -56,7 +59,7 @@ jobs:
       - name: integrate
         shell: bash
         run:  |
-          delay=$((RANDOM % 30))
+          delay=$(( (RANDOM % 10) + ${{ matrix.row }} ))
           echo "Delaying for $delay seconds"
           sleep "$delay"
           jobs/05_load ${{ matrix.map_tile }}
