@@ -15,9 +15,6 @@ env:
   AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
   AWS_EC2_METADATA_DISABLED: ${{ vars.AWS_EC2_METADATA_DISABLED }}
   CPL_VSISTDIN_BUFFER_LIMIT: ${{ vars.CPL_VSISTDIN_BUFFER_LIMIT }}
-  GDAL_HTTP_CONNECTTIMEOUT: "10"
-  GDAL_HTTP_MAX_RETRY: "5"
-  GDAL_HTTP_RETRY_DELAY: "5"
 jobs:
   get-matrix:
     runs-on: ubuntu-latest
@@ -41,6 +38,7 @@ jobs:
     needs: get-matrix
     strategy:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
+      max-parallel: 10
     services:
       postgres:
         image: ghcr.io/bcgov/ce_integratedroads-db:main
@@ -59,9 +57,9 @@ jobs:
         continue-on-error: true
         shell: bash
         run:  |
-          delay=$(( (RANDOM % 30) + ${{ matrix.row }} ))
+          delay=$(( (RANDOM % 15)
           echo "Delaying for $delay seconds"
           sleep "$delay"
-          curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/ || echo "warmup curl failed/timed out"
+          curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/
           jobs/05_load ${{ matrix.map_tile }}
           jobs/06_integrate ${{ matrix.map_tile }}
