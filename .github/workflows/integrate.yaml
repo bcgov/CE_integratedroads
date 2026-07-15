@@ -62,6 +62,6 @@ jobs:
           delay=$(( (RANDOM % 10) + ${{ matrix.row }} ))
           echo "Delaying for $delay seconds"
           sleep "$delay"
-          curl -s --max-time 15 https://nrs.objectstore.gov.bc.ca/ || true
+          curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/ || echo "warmup curl failed/timed out"
           jobs/05_load ${{ matrix.map_tile }}
           jobs/06_integrate ${{ matrix.map_tile }}
