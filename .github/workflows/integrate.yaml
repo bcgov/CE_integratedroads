@@ -27,8 +27,9 @@ jobs:
       shell: bash
       run: |
         if ! curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/; then
-            echo "Runner failed to connect to nrs.objectstore via curl"
-            exit 1
+          runner_ip=$(curl -s --max-time 5 https://api.ipify.org || echo "unknown")
+          echo "::warning::Runner failed to connect to nrs.objectstore. Runner IP: $runner_ip, tile: ${{ matrix.map_tile }}"
+          exit 1
         fi
         DATA=$(ogr2ogr -f GeoJSON /vsistdout/ /vsis3/$BUCKET/sources/whse_basemapping.bcgs_20k_grid.parquet \
           -sql "SELECT DISTINCT SUBSTR(map_tile, 1, 4) AS map_tile FROM \"whse_basemapping.bcgs_20k_grid\"" \
@@ -61,11 +62,12 @@ jobs:
         continue-on-error: true
         shell: bash
         run:  |
-          delay=$(( (RANDOM % 15) ))
+          delay=$(( (RANDOM % 10) ))
           echo "Delaying for $delay seconds"
           sleep "$delay"
           if ! curl -s -o /dev/null -w "warmup curl: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/; then
-            echo "Runner failed to connect to nrs.objectstore via curl"
+            runner_ip=$(curl -s --max-time 5 https://api.ipify.org || echo "unknown")
+            echo "::warning::Runner failed to connect to nrs.objectstore. Runner IP: $runner_ip, tile: ${{ matrix.map_tile }}"
             exit 1
           fi
           jobs/05_load ${{ matrix.map_tile }}
