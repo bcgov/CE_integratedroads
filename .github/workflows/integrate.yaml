@@ -44,7 +44,6 @@ jobs:
     needs: get-matrix
     strategy:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
-      max-parallel: 15
       fail-fast: false
     services:
       postgres:
