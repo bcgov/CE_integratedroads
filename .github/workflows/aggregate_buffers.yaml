@@ -55,4 +55,10 @@ jobs:
       - name: integrate
         shell: bash
         run:  |
+          runner_ip=$(curl -s --max-time 5 https://api.ipify.org || echo "unknown")
+          echo "Runner IP: $runner_ip, tile: ${{ matrix.map_tile }}"
+          if ! curl -s -o /dev/null -w "Test connection to s3: http_code=%{http_code} time_total=%{time_total}\n" --max-time 15 https://nrs.objectstore.gov.bc.ca/; then
+            echo "::warning::Runner failed to connect to nrs.objectstore. Runner IP: $runner_ip, tile: ${{ matrix.map_tile }}"
+            exit 1
+          fi
           jobs/07_aggregate_buffers ${{ matrix.MAP_TILE }}
