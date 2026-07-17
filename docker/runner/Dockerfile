@@ -6,7 +6,6 @@ RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends gnupg \
     && yes '' | sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
     && apt-get -qq install -y --no-install-recommends postgresql-client-16 \
-    && apt-get -qq install -y --no-install-recommends g++ \
     && apt-get -qq install -y --no-install-recommends git \
     && apt-get -qq install -y --no-install-recommends zip \
     && apt-get -qq install -y --no-install-recommends unzip \
@@ -14,8 +13,8 @@ RUN apt-get update && apt-get --assume-yes upgrade \
     && apt-get -qq install -y --no-install-recommends curl \
     && apt-get -qq install -y --no-install-recommends parallel \
     && apt-get -qq install -y --no-install-recommends python3-pip \
-    && apt-get -qq install -y --no-install-recommends python3-dev \
     && apt-get -qq install -y --no-install-recommends python3-venv \
+    && apt-get -qq install -y --no-install-recommends pipx \
     && rm -rf /var/lib/apt/lists/*
 
 RUN ARCH=$(uname -m) \
@@ -26,10 +25,5 @@ RUN ARCH=$(uname -m) \
 
 WORKDIR /home/ce_integratedroads
 
-COPY requirements.txt .
-
-RUN python3 -m venv /opt/venv && \
-    /opt/venv/bin/python -m pip install -U pip && \
-    /opt/venv/bin/python -m pip install --no-cache-dir -r requirements.txt
-
-ENV PATH="/opt/venv/bin:$PATH"
+RUN pipx install bcdata==0.16.0
+ENV PATH="/root/.local/bin:$PATH"
