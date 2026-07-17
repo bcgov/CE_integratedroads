@@ -15,6 +15,8 @@ jobs/05_load
 for tile in $(bcdata cat WHSE_BASEMAPPING.NTS_250K_GRID | jq -r '.properties.MAP_TILE' | tr '\n' ' ')
 do
   set -e ; jobs/06_integrate $tile
+  set -e ; jobs/07_aggregate_buffers $tile
 done
 
-jobs/07_dump
+jobs/08_dump
+
