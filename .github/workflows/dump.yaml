@@ -3,6 +3,8 @@ run-name: ${{ github.actor }} Dump data to .gdb
 on:
   workflow_dispatch:
   workflow_call:
+permissions:
+  contents: read
 env:
   DATABASE_URL: ${{ vars.DATABASE_URL }}
   AWS_ENDPOINT_URL: ${{ vars.AWS_ENDPOINT_URL }}

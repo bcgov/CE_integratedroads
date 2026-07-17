@@ -3,6 +3,8 @@ run-name: ${{ github.actor }} Download required datasets
 on:
   workflow_dispatch:
   workflow_call:
+permissions:
+  contents: read
 env:
   DATABASE_URL: ${{ vars.DATABASE_URL }}
   CCR_URL: ${{ vars.CCR_URL }}
