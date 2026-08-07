@@ -5,20 +5,26 @@ set -euxo pipefail
 mkdir -p integratedroads
 aws s3 cp s3://$BUCKET integratedroads --recursive --exclude "*" --include "integratedroads_*.parquet"
 
-outfile=BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y%m%d').gdb
-outlayer=integrated_roads_$(date '+%Y')
+roadsfile=BC_CE_Integrated_Roads_$(date '+%Y')_$(date '+%Y%m%d').gdb
+roadslayer=integrated_roads_$(date '+%Y')
+
+buffsfile=BC_CE_Integrated_Roads_$(date '+%Y')_Buffer_$(date '+%Y%m%d').gdb
+buffslayer_raw=Integrated_Roads_$(date '+%Y')_Buffer
+buffslayer_agg=Integrated_Roads_$(date '+%Y')_Buffer_Dissolve
 
 sources=BC_CE_Integrated_Roads_Sources_$(date '+%Y')_$(date '+%Y%m%d').gdb
 
-rm -rf $outfile
-rm -rf $outfile.zip
+rm -rf $roadsfile
+rm -rf $roadsfile.zip
+rm -rf $buffsfile
+rm -rf $buffsfile.zip
 
 # dump to file
 ogr2ogr   \
   -f OpenFileGDB \
   --config OPENFILEGDB_DEFAULT_STRING_WIDTH 255 \
   -nlt LINESTRING \
-  -nln $outlayer \
+  -nln $roadslayer \
   -sql "SELECT
    row_number() over() as \"INTEGRATED_ROADS_ID\",
    bcgw_source AS \"BCGW_SOURCE\",
@@ -97,11 +103,94 @@ ogr2ogr   \
 </dataIdInfo>
 </metadata>" \
   -mapfieldtype Integer64=Integer \
-  $outfile \
+  $roadsfile \
   integratedroads
 
-zip -r $outfile.zip $outfile
-aws s3 cp $outfile.zip s3://$BUCKET
+zip -r $roadsfile.zip $roadsfile
+aws s3 cp $roadsfile.zip s3://$BUCKET
+
+ogr2ogr   \
+  -f OpenFileGDB \
+  --config OPENFILEGDB_DEFAULT_STRING_WIDTH 255 \
+  -lco CREATE_SHAPE_AREA_AND_LENGTH_FIELDS=YES \
+  -nlt POLYGON \
+  -nln $buffslayer_raw \
+  -sql "SELECT
+     row_number() over() as \"ROAD_BUFFER_ID\",
+     road_class AS \"INTEGRATED_ROAD_CLASS_NUM\",
+     CASE
+       WHEN road_class = 1 THEN 'Hwy, Arterial'
+       WHEN road_class = 2 THEN 'Primary, Paved'
+       WHEN road_class = 3 THEN 'Secondary, FSR'
+       WHEN road_class = 4 THEN 'Tertiary, Operational, Local, Blank'
+       WHEN road_class = 5 THEN 'Quaternary, In-Block'
+       WHEN road_class = 6 THEN 'Trail'
+     END AS \"INTEGRATED_ROAD_CLASS_DESCR\",
+     CASE
+       WHEN road_class = 1 THEN 40
+       WHEN road_class = 2 THEN 30
+       WHEN road_class = 3 THEN 27
+       WHEN road_class = 4 THEN 19
+       WHEN road_class = 5 THEN 9
+       WHEN road_class = 6 THEN 5
+     END AS \"CEF_FULL_BUFFER_WIDTH_METRES\",
+     CASE
+       WHEN road_class = 1 THEN 20
+       WHEN road_class = 2 THEN 15
+       WHEN road_class = 3 THEN 13.5
+       WHEN road_class = 4 THEN 9.5
+       WHEN road_class = 5 THEN 4.5
+       WHEN road_class = 6 THEN 2.5
+     END AS \"CEF_HALF_BUFFER_WIDTH_METRES\",
+     geom
+   FROM raw_buffers" \
+   -dialect SQLite \
+   $buffsfile \
+   /vsis3/$BUCKET/raw_buffers
+
+
+ogr2ogr   \
+  -f OpenFileGDB \
+  --config OPENFILEGDB_DEFAULT_STRING_WIDTH 255 \
+  -lco CREATE_SHAPE_AREA_AND_LENGTH_FIELDS=YES \
+  -nlt POLYGON \
+  -nln $buffslayer_agg \
+  -update \
+  -sql "SELECT
+     row_number() over() as \"ROAD_BUFFER_ID\",
+     road_class AS \"INTEGRATED_ROAD_CLASS_NUM\",
+     CASE
+       WHEN road_class = 1 THEN 'Hwy, Arterial'
+       WHEN road_class = 2 THEN 'Primary, Paved'
+       WHEN road_class = 3 THEN 'Secondary, FSR'
+       WHEN road_class = 4 THEN 'Tertiary, Operational, Local, Blank'
+       WHEN road_class = 5 THEN 'Quaternary, In-Block'
+       WHEN road_class = 6 THEN 'Trail'
+     END AS \"INTEGRATED_ROAD_CLASS_DESCR\",
+     CASE
+       WHEN road_class = 1 THEN 40
+       WHEN road_class = 2 THEN 30
+       WHEN road_class = 3 THEN 27
+       WHEN road_class = 4 THEN 19
+       WHEN road_class = 5 THEN 9
+       WHEN road_class = 6 THEN 5
+     END AS \"CEF_FULL_BUFFER_WIDTH_METRES\",
+     CASE
+       WHEN road_class = 1 THEN 20
+       WHEN road_class = 2 THEN 15
+       WHEN road_class = 3 THEN 13.5
+       WHEN road_class = 4 THEN 9.5
+       WHEN road_class = 5 THEN 4.5
+       WHEN road_class = 6 THEN 2.5
+     END AS \"CEF_HALF_BUFFER_WIDTH_METRES\",
+     geom
+   FROM buffers" \
+   -dialect SQLite \
+   $buffsfile \
+   /vsis3/$BUCKET/buffers
+
+zip -r $buffsfile.zip $buffsfile
+aws s3 cp $buffsfile.zip s3://$BUCKET
 
 # archive source data
 ogr2ogr   \
